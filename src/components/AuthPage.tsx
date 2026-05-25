@@ -65,28 +65,28 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#070708] flex flex-col justify-center items-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden font-sans">
+    <div className="min-h-screen bg-[#04091a] flex flex-col justify-center items-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden font-sans">
       {/* Absolute Radial Ambient Glow Background */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(212,175,55,0.08)_0%,transparent_70%)] rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(212,175,55,0.08)_0%,rgba(31,58,138,0.18)_40%,transparent_70%)] rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-10 left-10 w-96 h-96 bg-[radial-gradient(circle,rgba(212,175,55,0.03)_0%,transparent_70%)] rounded-full blur-3xl pointer-events-none" />
 
       {/* Corporate Branding Headers */}
       <div className="text-center z-10 max-w-md w-full mb-8">
-        <div className="inline-flex items-center justify-center p-3.5 bg-gradient-to-br from-[#1c1c1e] to-[#121214] border border-[#d4af37]/35 rounded-2xl shadow-[0_0_20px_rgba(212,175,55,0.1)] mb-4 animate-pulse">
-          <Gem className="h-9 w-9 text-gradient bg-gradient-to-r from-[#f3e5ab] via-[#d4af37] to-[#aa7c11] text-[#d4af37]" />
+        <div className="inline-flex items-center justify-center p-3.5 bg-gradient-to-br from-[#0b152d] to-[#04091a] border border-[#d4af37]/45 rounded-2xl shadow-[0_0_20px_rgba(212,175,55,0.15)] mb-4 animate-pulse">
+          <Gem className="h-9 w-9 text-[#d4af37]" />
         </div>
         <h1 className="text-4xl font-extrabold tracking-widest text-white uppercase font-serif">
           DIA <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#f3e5ab] via-[#d4af37] to-[#aa7c11]">TRENDZ</span>
         </h1>
-        <p className="mt-2 text-xs text-gray-400 tracking-wider uppercase">
-          Enterprise Jewelry Production Management System
+        <p className="mt-2 text-[10px] text-[#f3e5ab]/80 tracking-widest uppercase">
+          ✦ Enterprise Jewelry Production Suite ✦
         </p>
       </div>
 
       <div className="w-full max-w-md z-10">
         {/* Main Glassmorphic Form Container */}
-        <div className="bg-[#121214]/90 backdrop-blur-xl border border-[#d4af37]/20 rounded-3xl p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-          <h2 className="text-lg font-medium text-[#f3e5ab] mb-6 flex items-center gap-2">
+        <div className="bg-[#0b152d]/95 backdrop-blur-2xl border border-[#1f3460] rounded-3xl p-8 shadow-[0_25px_60px_rgba(0,0,0,0.65)]">
+          <h2 className="text-base font-semibold text-[#f3e5ab] mb-6 flex items-center gap-2 tracking-wide">
             <ShieldCheck className="w-5 h-5 text-[#d4af37]" /> Terminal Gateway Sign-In
           </h2>
 
@@ -99,18 +99,18 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1.5">
+              <label className="block text-xs font-semibold text-[#f3e5ab]/70 uppercase tracking-widest mb-1.5">
                 Staff Email Address
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-4 w-4 text-[#d4af37]/50" />
+                  <Mail className="h-4 w-4 text-[#d4af37]/60" />
                 </div>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-3.5 bg-[#1a1a1c] border border-gray-800 rounded-xl text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-[#d4af37]/65 focus:ring-1 focus:ring-[#d4af37]/50 transition duration-200"
+                  className="block w-full pl-10 pr-3 py-3.5 bg-[#060c1c] border border-[#1f3460] rounded-xl text-sm text-[#cbd5e1] placeholder-slate-600 focus:outline-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37]/50 transition duration-200"
                   placeholder="name@diatrendz.com"
                   required
                 />
@@ -118,18 +118,18 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1.5">
+              <label className="block text-xs font-semibold text-[#f3e5ab]/70 uppercase tracking-widest mb-1.5">
                 Gate Passcode
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-4 w-4 text-[#d4af37]/50" />
+                  <Lock className="h-4 w-4 text-[#d4af37]/60" />
                 </div>
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-3.5 bg-[#1a1a1c] border border-gray-800 rounded-xl text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-[#d4af37]/65 focus:ring-1 focus:ring-[#d4af37]/50 transition duration-200"
+                  className="block w-full pl-10 pr-3 py-3.5 bg-[#060c1c] border border-[#1f3460] rounded-xl text-sm text-[#cbd5e1] placeholder-slate-600 focus:outline-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37]/50 transition duration-200"
                   placeholder="••••••••••••"
                   required
                 />

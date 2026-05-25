@@ -32,6 +32,7 @@ import { JobCard } from '../types';
 
 interface JobBagTrackerProps {
   tasks: JobCard[];
+  currentUser?: any;
   onSelectEmployee?: (empId: string) => void;
   selectedTrackerJobId?: string | null;
   onSelectTrackerJobId?: (id: string | null) => void;
@@ -219,10 +220,13 @@ const ILLUSTRATIVE_BAG_EXAMPLES: IllustrativeBag[] = [
 
 export function JobBagTracker({ 
   tasks, 
+  currentUser,
   onSelectEmployee, 
   selectedTrackerJobId, 
   onSelectTrackerJobId 
 }: JobBagTrackerProps) {
+  const isEmployee = currentUser?.role === 'EMPLOYEE';
+  const [showOthers, setShowOthers] = useState(!isEmployee);
   const [searchTerm, setSearchTerm] = useState('');
   const [localSelectedJob, setLocalSelectedJob] = useState<any | null>(null);
   const [searchSuccessPopup, setSearchSuccessPopup] = useState<string | null>(null);
@@ -231,7 +235,12 @@ export function JobBagTracker({
   // Combined master source of jobs = genuine active tasks + our 8 highly detailed illustrative reference cases
   const allAvailableBags = useMemo(() => {
     // Standardize genuine tasks into tracker-compatible schema
-    const genuineMapped = tasks.map(t => ({
+    let filteredTasks = tasks;
+    if (isEmployee && !showOthers) {
+      filteredTasks = tasks.filter(t => t.assignedEmployeeId === currentUser?.id);
+    }
+
+    const genuineMapped = filteredTasks.map(t => ({
       id: t.id,
       customerName: t.customerName,
       jewelryType: t.jewelryType,
@@ -249,13 +258,18 @@ export function JobBagTracker({
       isExample: false
     }));
 
-    const illustrativeMapped = ILLUSTRATIVE_BAG_EXAMPLES.map(ex => ({
+    let illustrativeMapped = ILLUSTRATIVE_BAG_EXAMPLES;
+    if (isEmployee && !showOthers) {
+      illustrativeMapped = ILLUSTRATIVE_BAG_EXAMPLES.filter(ex => ex.assignedEmployeeId === currentUser?.id);
+    }
+
+    const illustrativeMappedRes = illustrativeMapped.map(ex => ({
       ...ex,
       isExample: true
     }));
 
-    return [...genuineMapped, ...illustrativeMapped];
-  }, [tasks]);
+    return [...genuineMapped, ...illustrativeMappedRes];
+  }, [tasks, isEmployee, showOthers, currentUser]);
 
   // Synchronize with external selection states (like searches made in the main header topbar)
   useEffect(() => {
@@ -461,6 +475,25 @@ export function JobBagTracker({
         
         {/* Left Column (4 cols): Search and Department Bag lists */}
         <div className="lg:col-span-4 space-y-5">
+
+          {isEmployee && (
+            <div className="p-4 bg-gray-950 border border-gray-900 rounded-2xl text-left space-y-3 shadow-md animate-in fade-in">
+              <div className="flex items-center justify-between">
+                <span className="text-[9px] uppercase tracking-widest text-[#d4af37] font-extrabold font-mono">Workspace Data Protection</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+              </div>
+              <p className="text-[11px] text-gray-400 leading-normal">
+                Other technicians' jobs are filtered out of your default dashboard to help you focus.
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowOthers(prev => !prev)}
+                className="w-full py-2 rounded-xl bg-[#d4af37]/10 hover:bg-[#d4af37]/25 text-[#d4af37] hover:text-white border border-[#d4af37]/20 text-[10px] font-bold uppercase tracking-wider transition transition-colors"
+              >
+                {showOthers ? 'Switch to Confidential Mode' : 'Show All Floor Queues'}
+              </button>
+            </div>
+          )}
           
           {/* Diagnostic barcode search */}
           <div className="p-5 bg-[#121214]/95 border border-gray-900 rounded-2xl text-left space-y-4 shadow-xl">

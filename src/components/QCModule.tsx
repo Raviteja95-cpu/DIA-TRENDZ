@@ -97,8 +97,20 @@ export function QCModule({ currentUser, onRefreshMetrics, onSelectEmployee }: QC
       });
 
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message || 'Verification execution failed.');
+        let errMsg = 'Verification execution failed.';
+        try {
+          const contentType = res.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const err = await res.json();
+            errMsg = err.message || errMsg;
+          } else {
+            const txt = await res.text();
+            errMsg = txt || `HTTP Error ${res.status}: ${res.statusText}`;
+          }
+        } catch (parseErr) {
+          errMsg = `HTTP System Error ${res.status}: ${res.statusText}`;
+        }
+        throw new Error(errMsg);
       }
 
       setSuccessMsg(`Quality inspection completed. Product is now marked: ${action === 'approve' ? 'Approved & Shipped' : 'Rework Recalled'}`);

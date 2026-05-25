@@ -12,6 +12,20 @@ interface TaskFormProps {
   onRefreshTasks?: () => void;
 }
 
+const safeResponseParse = async (res: Response) => {
+  try {
+    const contentType = res.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      return await res.json();
+    } else {
+      const text = await res.text();
+      return { message: text || `HTTP Error ${res.status}: ${res.statusText}` };
+    }
+  } catch (err) {
+    return { message: `HTTP Parsing Error ${res.status}: ${res.statusText}` };
+  }
+};
+
 export function TaskForm({ currentUser, onRefreshTasks }: TaskFormProps) {
   const [employees, setEmployees] = useState<UserType[]>([]);
   const [loading, setLoading] = useState(false);
@@ -86,7 +100,7 @@ export function TaskForm({ currentUser, onRefreshTasks }: TaskFormProps) {
         })
       });
 
-      const data = await res.json();
+      const data = await safeResponseParse(res);
       if (!res.ok) {
         throw new Error(data.message || 'Creation rejected by production server.');
       }

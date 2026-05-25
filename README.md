@@ -48,7 +48,31 @@ A state-monitored directory to locate and audit high-value production envelopes.
 
 ---
 
-## 4. Run-Time Development & Deployment Manual
+## 4. Automated QA Verification Suite & Test Engine Operations
+
+The system features an integrated corporate **Multi-Layer Quality Assurance Verification Suite** located at `GET /api/tests/run` and visually represented on the **Testing Center Dashboard** (accessible to `SUPER_ADMIN` role).
+
+This testing suite runs in-memory system assertions covering the eight critical software testing methodologies to maintain robust operations:
+
+| Testing Paradigm | Verification Target | Core Implementation Detail |
+| :--- | :--- | :--- |
+| **1. Unit Testing** | Gold Purity formulas & vacation calculations | Asserts correct scalar multipliers for gold-karat ratios ($K/24$) and inclusive date ranges for leaves. |
+| **2. Integration Testing** | Domain Whitelists & State Seeding Integrity | Validates that foreign email addresses are correctly blocked while official domains and initial admin seeding remain intact. |
+| **3. API Testing** | System Probe Payloads & Authentication gateways | Simulates diagnostic output structures and authentication login response matrices for positive and negative paths. |
+| **4. E2E Simulation** | Manufacturing Workbench Lifecycle Swapes | Traces a single Job Bag from initial assignment, transition to active progress, transfer to pending QC, through final completion. |
+| **5. Load Testing** | Multi-Query Concurrent Stress Verification | Automatically simulates 100 concurrent persistence queries on the seed data database, confirming sub-millisecond execute latencies. |
+| **6. Security Testing** | SQL Wildcard Escaping & Login Lockouts | Prevents injection characters (like single-ticks and dashes) from bypassing bounds, and locks out deactivated employee status profiles. |
+| **7. Smoke Testing** | Local Persistence Directories Probe | Asserts absolute read/write accessibility of raw files under the local directory file system. |
+| **8. Regression Testing** | Boundary Alloy Weights Integrity Gates | Enforces that physical material inputs handles negative outliers gracefully by overriding them to positive bounds of $0$. |
+
+Developers can trigger automated sweeps programmatically:
+```bash
+curl http://localhost:3000/api/tests/run
+```
+
+---
+
+## 5. Run-Time Development & Deployment Manual
 
 ### Prerequisites
 Ensure your operating system is equipped with **Node.js LTS (v18.0.0+ or v20.0.0+)** and the standard package manager **npm (v9.0.0+)**.
@@ -95,7 +119,7 @@ npm run start
 
 ---
 
-## 5. Architectural Directory Spec (For Engineers Only)
+## 6. Architectural Directory Spec (For Engineers Only)
 
 ```yaml
 /

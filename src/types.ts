@@ -119,3 +119,15 @@ export interface SystemMetrics {
   pendingApprovals: number;
   qcPendingJobs: number;
 }
+
+export interface Holiday {
+  id: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  description: string;
+  days: number;
+  createdBy: string;
+  creatorRole: UserRole;
+  status: 'APPROVED' | 'PENDING_DECISION';
+}

@@ -46,11 +46,26 @@ import { QCModule } from './components/QCModule';
 import { WorkReports } from './components/WorkReports';
 import { ModernAnalytics } from './components/ModernAnalytics';
 import { JobBagTracker } from './components/JobBagTracker';
+import { TestingCenter } from './components/TestingCenter';
 import { JobCard, SystemMetrics } from './types';
+
+const safeResponseParse = async (res: Response) => {
+  try {
+    const contentType = res.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      return await res.json();
+    } else {
+      const text = await res.text();
+      return { message: text || `HTTP Status Code ${res.status}: ${res.statusText}` };
+    }
+  } catch (err) {
+    return { message: `HTTP Parsing Exception: Status ${res.status}` };
+  }
+};
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'personnel' | 'tasks' | 'leave' | 'qc' | 'analytics' | 'history' | 'settings' | 'reports' | 'tracker'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'personnel' | 'tasks' | 'leave' | 'qc' | 'analytics' | 'history' | 'settings' | 'reports' | 'tracker' | 'testing'>('dashboard');
 
   // Metrics database stats
   const [metrics, setMetrics] = useState<SystemMetrics>({
@@ -89,6 +104,26 @@ export default function App() {
   const [artisanFilter, setArtisanFilter] = useState<'ALL' | 'BUSY' | 'FREE' | 'UNAVAILABLE'>('ALL');
   const [dashboardTaskFilter, setDashboardTaskFilter] = useState<'ALL' | 'IN_PROGRESS' | 'WAITING_APPROVAL' | 'QC_PENDING' | 'COMPLETED' | 'DELAYED' | 'URGENT'>('ALL');
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+
+  const handleScrollToLiveWorkbench = (filter: 'ALL' | 'IN_PROGRESS' | 'WAITING_APPROVAL' | 'QC_PENDING' | 'COMPLETED' | 'DELAYED' | 'URGENT') => {
+    setDashboardTaskFilter(filter);
+    setTimeout(() => {
+      const el = document.getElementById('live-workbench-monitor');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+  };
+
+  const handleScrollToArtisans = (filter: 'ALL' | 'BUSY' | 'FREE' | 'UNAVAILABLE') => {
+    setArtisanFilter(filter);
+    setTimeout(() => {
+      const el = document.getElementById('live-artisan-workbench');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+  };
 
   // Omnipresent search state declarations
   const [searchQuery, setSearchQuery] = useState('');
@@ -236,6 +271,10 @@ export default function App() {
 
   const handleNotificationClick = (n: any) => {
     setShowNotificationPopup(false);
+    
+    // Instantly remove this notification from the stored state list so it is marked read / cleared
+    setNotifications(prev => prev.filter(item => item.id !== n.id));
+
     if (!currentUser) return;
 
     // Detect target page / tab
@@ -311,12 +350,16 @@ export default function App() {
         })
       });
 
+      const data = await safeResponseParse(res);
       if (res.ok) {
         fetchLiveDashboardData();
         addVisualNotification(`Accepted manufacturing task: ${taskId}`, false);
+      } else {
+        throw new Error(data.message || 'Error occurred while accepting this job ticket.');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      addVisualNotification(`Accept Failure: ${err.message || err}`, true);
     }
   };
 
@@ -338,13 +381,17 @@ export default function App() {
         })
       });
 
+      const data = await safeResponseParse(res);
       if (res.ok) {
         setSelectedTaskForEstimate(null);
         fetchLiveDashboardData();
         addVisualNotification(`Estimation submitted (${tempHoursEstimate} hrs) for ${selectedTaskForEstimate.id}`, false);
+      } else {
+        throw new Error(data.message || 'Failed to dispatch the timeline estimate.');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      addVisualNotification(`Estimate Submission Error: ${err.message || err}`, true);
     }
   };
 
@@ -365,18 +412,17 @@ export default function App() {
         })
       });
 
+      const data = await safeResponseParse(res);
       if (res.ok) {
         setApprovingTask(null);
         fetchLiveDashboardData();
         addVisualNotification(`Approved fabrication hours limit for ${approvingTask.id}`, false);
       } else {
-        const errData = await res.json().catch(() => ({}));
-        console.error("Failed to approve estimate:", errData);
-        setApprovingTask(null);
-        fetchLiveDashboardData();
+        throw new Error(data.message || 'Estimate approval rejected by system.');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      addVisualNotification(`Approval Failure: ${err.message || err}`, true);
       setApprovingTask(null);
     }
   };
@@ -395,12 +441,16 @@ export default function App() {
         })
       });
 
+      const data = await safeResponseParse(res);
       if (res.ok) {
         fetchLiveDashboardData();
         addVisualNotification(`Artisan active on work tools representing ${taskId}`, false);
+      } else {
+        throw new Error(data.message || 'Could not start task production run.');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      addVisualNotification(`Start Failure: ${err.message || err}`, true);
     }
   };
 
@@ -422,14 +472,18 @@ export default function App() {
         })
       });
 
+      const data = await safeResponseParse(res);
       if (res.ok) {
         setSelectedTaskForPause(null);
         setTempPauseReason('');
         fetchLiveDashboardData();
         addVisualNotification(`Artisan paused job shift for ${selectedTaskForPause.id}`, false);
+      } else {
+        throw new Error(data.message || 'Pause execution request rejected.');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      addVisualNotification(`Pause Failure: ${err.message || err}`, true);
     }
   };
 
@@ -487,12 +541,16 @@ export default function App() {
         })
       });
 
+      const data = await safeResponseParse(res);
       if (res.ok) {
         fetchLiveDashboardData();
         addVisualNotification(`Task completed & dispatched for Quality Checker review: ${taskId}`, false);
+      } else {
+        throw new Error(data.message || 'Error occurred while dispatching to QC.');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      addVisualNotification(`QC Submit Failure: ${err.message || err}`, true);
     }
   };
 
@@ -513,14 +571,18 @@ export default function App() {
         })
       });
 
+      const data = await safeResponseParse(res);
       if (res.ok) {
         setUploadTaskTarget(null);
         setTempImage64('');
         fetchLiveDashboardData();
         addVisualNotification(`Visual proof image logged on card ${uploadTaskTarget.id}`, false);
+      } else {
+        throw new Error(data.message || 'Image upload rejected.');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      addVisualNotification(`Upload Failure: ${err.message || err}`, true);
     }
   };
 
@@ -848,28 +910,59 @@ export default function App() {
             </button>
 
             {showNotificationPopup && (
-              <div className="absolute right-0 mt-3 w-80 bg-[#121214] border border-[#d4af37]/35 rounded-2xl shadow-2xl p-4 z-50 text-left animate-in fade-in slide-in-from-top-3 duration-200">
-                <span className="text-[10px] tracking-wider text-[#d4af37] font-bold block uppercase border-b border-gray-800 pb-2 mb-2">
-                  FACTORY YIELD TELEMETRY ALERTS
-                </span>
-                <div className="space-y-3.5 max-h-[300px] overflow-y-auto pr-1">
-                  {notifications.map(n => (
-                    <div 
-                      key={n.id} 
-                      onClick={() => handleNotificationClick(n)}
-                      className="p-2.5 rounded-xl bg-[#161618] border border-gray-900 hover:border-[#d4af37]/45 hover:bg-gray-900/60 cursor-pointer transition duration-150 relative text-left group flex flex-col gap-1"
+              <div id="telemetry-alerts-popup" className="absolute right-0 mt-3 w-80 bg-[#121214] border border-[#d4af37]/35 rounded-2xl shadow-2xl p-4 z-50 text-left animate-in fade-in slide-in-from-top-3 duration-200">
+                <div className="flex items-center justify-between border-b border-gray-800 pb-2 mb-2">
+                  <span className="text-[10px] tracking-wider text-[#d4af37] font-bold block uppercase">
+                    FACTORY YIELD TELEMETRY ALERTS
+                  </span>
+                  {notifications.length > 0 && (
+                    <button
+                      id="btn-clear-all-alerts"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setNotifications([]);
+                      }}
+                      className="text-[9px] font-extrabold text-slate-400 hover:text-white hover:underline transition uppercase cursor-pointer"
                     >
-                      <div className="flex items-start justify-between gap-1.5">
-                        <p className={`text-[11px] leading-relaxed group-hover:text-white transition duration-150 ${n.urgent ? 'text-orange-400 font-semibold' : 'text-gray-300'}`}>
-                          {n.text}
-                        </p>
-                        <span className="text-[8px] font-mono shrink-0 uppercase tracking-wider text-gray-500 bg-gray-950 px-1 py-0.5 rounded border border-gray-900 group-hover:border-[#d4af37]/30 group-hover:text-[#d4af37] transition duration-150">
-                          {n.targetTab || 'view'}
-                        </span>
-                      </div>
-                      <span className="text-[9px] text-gray-500 block">{n.time}</span>
+                      Clear All
+                    </button>
+                  )}
+                </div>
+                <div className="space-y-3.5 max-h-[300px] overflow-y-auto pr-1">
+                  {notifications.length === 0 ? (
+                    <div className="py-8 text-center text-gray-500 text-[11px] font-medium italic">
+                      No active telemetry alerts logged.
                     </div>
-                  ))}
+                  ) : (
+                    notifications.map(n => (
+                      <div 
+                        key={n.id} 
+                        onClick={() => handleNotificationClick(n)}
+                        className="p-2.5 rounded-xl bg-[#161618] border border-gray-900 hover:border-[#d4af37]/45 hover:bg-gray-900/60 cursor-pointer transition duration-150 relative text-left group flex flex-col gap-1 pr-8"
+                      >
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setNotifications(prev => prev.filter(item => item.id !== n.id));
+                          }}
+                          className="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-[10px] font-bold p-1 transition opacity-60 group-hover:opacity-100"
+                          title="Dismiss notification"
+                        >
+                          ✕
+                        </button>
+                        <div className="flex items-start justify-between gap-1.5">
+                          <p className={`text-[11px] leading-relaxed group-hover:text-white transition duration-150 ${n.urgent ? 'text-orange-400 font-semibold' : 'text-gray-300'}`}>
+                            {n.text}
+                          </p>
+                          <span className="text-[8px] font-mono shrink-0 uppercase tracking-wider text-gray-500 bg-gray-950 px-1 py-0.5 rounded border border-gray-900 group-hover:border-[#d4af37]/30 group-hover:text-[#d4af37] transition duration-150">
+                            {n.targetTab || 'view'}
+                          </span>
+                        </div>
+                        <span className="text-[9px] text-gray-500 block">{n.time}</span>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             )}
@@ -952,7 +1045,7 @@ export default function App() {
                     : 'bg-gray-950 border-gray-900 text-gray-400 hover:text-white hover:bg-white/[0.03]'
                 }`}
               >
-                <Users className="w-3.5 h-3.5 shrink-0" /> Crew Roster
+                <Users className="w-3.5 h-3.5 shrink-0" /> Personnel
               </button>
             )}
 
@@ -966,7 +1059,7 @@ export default function App() {
                     : 'bg-gray-950 border-gray-900 text-gray-400 hover:text-white hover:bg-white/[0.03]'
                 }`}
               >
-                <Briefcase className="w-3.5 h-3.5 shrink-0" /> Tasks Dispatch
+                <Briefcase className="w-3.5 h-3.5 shrink-0" /> Tasks
               </button>
             )}
 
@@ -980,7 +1073,7 @@ export default function App() {
                     : 'bg-gray-950 border-gray-900 text-gray-400 hover:text-white hover:bg-white/[0.03]'
                 }`}
               >
-                <Briefcase className="w-3.5 h-3.5 shrink-0" /> Assigned Tasks
+                <Briefcase className="w-3.5 h-3.5 shrink-0" /> Tasks
               </button>
             )}
 
@@ -993,7 +1086,7 @@ export default function App() {
                   : 'bg-gray-950 border-gray-900 text-gray-400 hover:text-white hover:bg-white/[0.03]'
               }`}
             >
-              <Calendar className="w-3.5 h-3.5 shrink-0" /> Staff Leaves
+              <Calendar className="w-3.5 h-3.5 shrink-0" /> Leave
             </button>
 
             {(currentUser.role === 'SUPER_ADMIN' || currentUser.role === 'ADMIN' || currentUser.role === 'QC') && (
@@ -1006,7 +1099,7 @@ export default function App() {
                     : 'bg-gray-950 border-gray-900 text-gray-400 hover:text-white hover:bg-white/[0.03]'
                 }`}
               >
-                <CheckCircle className="w-3.5 h-3.5 shrink-0" /> QC Inspection
+                <CheckCircle className="w-3.5 h-3.5 shrink-0" /> QC
               </button>
             )}
 
@@ -1034,7 +1127,7 @@ export default function App() {
                     : 'bg-gray-950 border-gray-900 text-gray-400 hover:text-white hover:bg-white/[0.03]'
                 }`}
               >
-                <History className="w-3.5 h-3.5 shrink-0" /> Search Records
+                <History className="w-3.5 h-3.5 shrink-0" /> History
               </button>
             )}
 
@@ -1048,7 +1141,7 @@ export default function App() {
                     : 'bg-gray-950 border-gray-900 text-gray-400 hover:text-white hover:bg-white/[0.03]'
                 }`}
               >
-                <FileText className="w-3.5 h-3.5 shrink-0" /> Material Logs
+                <FileText className="w-3.5 h-3.5 shrink-0" /> Reports
               </button>
             )}
 
@@ -1061,7 +1154,7 @@ export default function App() {
                   : 'bg-gray-950 border-gray-900 text-gray-400 hover:text-white hover:bg-white/[0.03]'
               }`}
             >
-              <Package className="w-3.5 h-3.5 shrink-0" /> Job Bag Locator
+              <Package className="w-3.5 h-3.5 shrink-0" /> Tracker
             </button>
 
             {currentUser.role === 'SUPER_ADMIN' && (
@@ -1077,6 +1170,20 @@ export default function App() {
                 <Settings className="w-3.5 h-3.5 shrink-0" /> Settings
               </button>
             )}
+
+            {currentUser.role === 'SUPER_ADMIN' && (
+              <button
+                type="button"
+                onClick={() => { setActiveTab('testing'); setShowMobileMenu(false); }}
+                className={`p-3 rounded-xl text-left text-[11px] font-bold uppercase tracking-wider transition duration-150 flex items-center gap-2 border ${
+                  activeTab === 'testing'
+                    ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black border-[#d4af37] shadow-[#d4af37]/10 shadow'
+                    : 'bg-gray-950 border-gray-900 text-gray-400 hover:text-white hover:bg-white/[0.03]'
+                }`}
+              >
+                <ShieldCheck className="w-3.5 h-3.5 shrink-0" /> Testing
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -1084,17 +1191,17 @@ export default function App() {
       {/* Main Workspace Frame container */}
       <div className="w-full max-w-full px-4 md:px-8 xl:px-12 pt-6 flex flex-col md:flex-row gap-6 print:block">
         {/* Real-time elegant Workspace sidebar navigators */}
-        <aside className="hidden md:flex md:w-64 max-w-full shrink-0 flex-col gap-1.5 p-2 bg-[#121214]/90 backdrop-blur-md rounded-2xl border border-gray-900 justify-start print:hidden">
+        <aside className="hidden md:flex md:w-64 max-w-full shrink-0 flex-col gap-1.5 p-2 bg-[#0b152d]/92 backdrop-blur-xl rounded-2xl border border-[#1f3460] justify-start print:hidden shadow-lg">
           {currentUser.role !== 'EMPLOYEE' && currentUser.role !== 'QC' && (
             <button
               onClick={() => setActiveTab('dashboard')}
               className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition flex items-center gap-2.5 ${
                 activeTab === 'dashboard'
-                  ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.15)]'
-                  : 'text-gray-400 hover:text-white hover:bg-white/[0.03]'
+                  ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.15)] animate-pulse-subtle'
+                  : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
               }`}
             >
-              <LayoutDashboard className="w-4 h-4" /> Unified Dashboard
+              <LayoutDashboard className="w-4 h-4 shrink-0 text-[#d4af37]" /> Dashboard
             </button>
           )}
 
@@ -1104,10 +1211,10 @@ export default function App() {
               className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition flex items-center gap-2.5 ${
                 activeTab === 'personnel'
                   ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.15)]'
-                  : 'text-gray-400 hover:text-white hover:bg-white/[0.03]'
+                  : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
               }`}
             >
-              <Users className="w-4 h-4" /> Crew Roster Directory
+              <Users className="w-4 h-4 shrink-0 text-[#d4af37]" /> Personnel
             </button>
           )}
 
@@ -1117,10 +1224,10 @@ export default function App() {
               className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition flex items-center gap-2.5 ${
                 activeTab === 'tasks'
                   ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.15)]'
-                  : 'text-gray-400 hover:text-white hover:bg-white/[0.03]'
+                  : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
               }`}
             >
-              <Briefcase className="w-4 h-4" /> Production Tasks Dispatch
+              <Briefcase className="w-4 h-4 shrink-0 text-[#d4af37]" /> Tasks
             </button>
           )}
 
@@ -1130,10 +1237,10 @@ export default function App() {
               className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition flex items-center gap-2.5 ${
                 activeTab === 'tasks'
                   ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black'
-                  : 'text-gray-400 hover:text-white hover:bg-white/[0.03]'
+                  : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
               }`}
             >
-              <Briefcase className="w-4 h-4" /> My Assigned Tasks
+              <Briefcase className="w-4 h-4 shrink-0 text-[#d4af37]" /> Tasks
             </button>
           )}
 
@@ -1142,10 +1249,10 @@ export default function App() {
             className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition flex items-center gap-2.5 ${
               activeTab === 'leave'
                 ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.15)]'
-                : 'text-gray-400 hover:text-white hover:bg-white/[0.03]'
+                : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
             }`}
           >
-            <Calendar className="w-4 h-4" /> Staff Leaves
+            <Calendar className="w-4 h-4 shrink-0 text-[#d4af37]" /> Leave
           </button>
 
           {(currentUser.role === 'SUPER_ADMIN' || currentUser.role === 'ADMIN' || currentUser.role === 'QC') && (
@@ -1154,10 +1261,10 @@ export default function App() {
               className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition flex items-center gap-2.5 ${
                 activeTab === 'qc'
                   ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.15)]'
-                  : 'text-gray-400 hover:text-white hover:bg-white/[0.03]'
+                  : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
               }`}
             >
-              <CheckCircle className="w-4 h-4" /> Quality Inspection ({metrics.qcPendingJobs})
+              <CheckCircle className="w-4 h-4 shrink-0 text-[#d4af37]" /> QC ({metrics.qcPendingJobs})
             </button>
           )}
 
@@ -1167,10 +1274,10 @@ export default function App() {
               className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition flex items-center gap-2.5 ${
                 activeTab === 'analytics'
                   ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.15)]'
-                  : 'text-gray-400 hover:text-white hover:bg-white/[0.03]'
+                  : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
               }`}
             >
-              <Activity className="w-4 h-4" /> Analytics
+              <Activity className="w-4 h-4 shrink-0 text-[#d4af37]" /> Analytics
             </button>
           )}
 
@@ -1180,10 +1287,10 @@ export default function App() {
               className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition flex items-center gap-2.5 ${
                 activeTab === 'history'
                   ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.15)]'
-                  : 'text-gray-400 hover:text-white hover:bg-white/[0.03]'
+                  : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
               }`}
             >
-              <History className="w-4 h-4" /> Index search Records
+              <History className="w-4 h-4 shrink-0 text-[#d4af37]" /> History
             </button>
           )}
 
@@ -1193,10 +1300,10 @@ export default function App() {
                className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition flex items-center gap-2.5 ${
                  activeTab === 'reports'
                    ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.15)]'
-                   : 'text-gray-400 hover:text-white hover:bg-white/[0.03]'
+                   : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
                }`}
             >
-              <FileText className="w-4 h-4" /> Material & Work Reports
+              <FileText className="w-4 h-4 shrink-0 text-[#d4af37]" /> Reports
             </button>
           )}
 
@@ -1205,10 +1312,10 @@ export default function App() {
             className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition flex items-center gap-2.5 ${
               activeTab === 'tracker'
                 ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.15)]'
-                : 'text-gray-400 hover:text-white hover:bg-white/[0.03]'
+                : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
             }`}
           >
-            <Package className="w-4 h-4 font-bold" /> Spot Job Bag Locator
+            <Package className="w-4 h-4 shrink-0 text-[#d4af37] font-bold" /> Tracker
           </button>
 
           {currentUser.role === 'SUPER_ADMIN' && (
@@ -1217,10 +1324,23 @@ export default function App() {
               className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition flex items-center gap-2.5 ${
                 activeTab === 'settings'
                   ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.15)]'
-                  : 'text-gray-400 hover:text-white hover:bg-white/[0.03]'
+                  : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
               }`}
             >
-              <Settings className="w-4 h-4" /> System Settings
+              <Settings className="w-4 h-4 shrink-0 text-[#d4af37]" /> Settings
+            </button>
+          )}
+
+          {currentUser.role === 'SUPER_ADMIN' && (
+            <button
+              onClick={() => setActiveTab('testing')}
+              className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition flex items-center gap-2.5 ${
+                activeTab === 'testing'
+                  ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.15)]'
+                  : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+              }`}
+            >
+              <ShieldCheck className="w-4 h-4 shrink-0 text-[#d4af37]" /> Testing
             </button>
           )}
         </aside>
@@ -1261,7 +1381,7 @@ export default function App() {
               {/* Gold Counter Grid HUD */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <div 
-                  onClick={() => setArtisanFilter(artisanFilter === 'BUSY' ? 'ALL' : 'BUSY')}
+                  onClick={() => handleScrollToArtisans(artisanFilter === 'BUSY' ? 'ALL' : 'BUSY')}
                   className={`p-5 rounded-2xl border transition-all duration-200 text-left relative overflow-hidden cursor-pointer select-none ${
                     artisanFilter === 'BUSY'
                       ? 'bg-[#1b120c] border-[#d4af37] shadow-lg shadow-[#d4af37]/10'
@@ -1274,7 +1394,7 @@ export default function App() {
                   <div 
                     onClick={(e) => {
                       e.stopPropagation();
-                      setArtisanFilter(artisanFilter === 'UNAVAILABLE' ? 'ALL' : 'UNAVAILABLE');
+                      handleScrollToArtisans(artisanFilter === 'UNAVAILABLE' ? 'ALL' : 'UNAVAILABLE');
                     }}
                     className={`text-[10px] flex items-center gap-1 font-semibold mt-1.5 px-2 py-0.5 rounded-lg w-max transition ${
                       artisanFilter === 'UNAVAILABLE'
@@ -1288,7 +1408,7 @@ export default function App() {
                 </div>
 
                 <div 
-                  onClick={() => setDashboardTaskFilter(dashboardTaskFilter === 'IN_PROGRESS' ? 'ALL' : 'IN_PROGRESS')}
+                  onClick={() => handleScrollToLiveWorkbench(dashboardTaskFilter === 'IN_PROGRESS' ? 'ALL' : 'IN_PROGRESS')}
                   className={`p-5 rounded-2xl border transition-all duration-200 text-left relative overflow-hidden cursor-pointer select-none ${
                     dashboardTaskFilter === 'IN_PROGRESS'
                       ? 'bg-[#1b120c] border-[#d4af37] shadow-lg shadow-[#d4af37]/10'
@@ -1301,7 +1421,7 @@ export default function App() {
                   <div 
                     onClick={(e) => {
                       e.stopPropagation();
-                      setDashboardTaskFilter(dashboardTaskFilter === 'WAITING_APPROVAL' ? 'ALL' : 'WAITING_APPROVAL');
+                      handleScrollToLiveWorkbench(dashboardTaskFilter === 'WAITING_APPROVAL' ? 'ALL' : 'WAITING_APPROVAL');
                     }}
                     className={`text-[10px] flex items-center gap-1 font-semibold mt-1.5 px-2 py-0.5 rounded-lg w-max transition ${
                       dashboardTaskFilter === 'WAITING_APPROVAL'
@@ -1315,7 +1435,7 @@ export default function App() {
                 </div>
 
                 <div 
-                  onClick={() => setDashboardTaskFilter(dashboardTaskFilter === 'DELAYED' ? 'ALL' : 'DELAYED')}
+                  onClick={() => handleScrollToLiveWorkbench(dashboardTaskFilter === 'DELAYED' ? 'ALL' : 'DELAYED')}
                   className={`p-5 rounded-2xl border transition-all duration-200 text-left relative overflow-hidden cursor-pointer select-none ${
                     dashboardTaskFilter === 'DELAYED'
                       ? 'bg-rose-950/25 border-red-500/80 shadow-lg shadow-red-500/15'
@@ -1331,7 +1451,7 @@ export default function App() {
                 </div>
 
                 <div 
-                  onClick={() => setDashboardTaskFilter(dashboardTaskFilter === 'URGENT' ? 'ALL' : 'URGENT')}
+                  onClick={() => handleScrollToLiveWorkbench(dashboardTaskFilter === 'URGENT' ? 'ALL' : 'URGENT')}
                   className={`p-5 rounded-2xl border transition-all duration-200 text-left relative overflow-hidden cursor-pointer select-none ${
                     dashboardTaskFilter === 'URGENT'
                       ? 'bg-orange-950/25 border-orange-500/80 shadow-lg shadow-orange-500/15'
@@ -1344,7 +1464,7 @@ export default function App() {
                   <div 
                     onClick={(e) => {
                       e.stopPropagation();
-                      setDashboardTaskFilter(dashboardTaskFilter === 'COMPLETED' ? 'ALL' : 'COMPLETED');
+                      handleScrollToLiveWorkbench(dashboardTaskFilter === 'COMPLETED' ? 'ALL' : 'COMPLETED');
                     }}
                     className={`text-[10px] flex items-center gap-1 mt-1.5 font-mono px-2 py-0.5 rounded-lg w-max transition ${
                       dashboardTaskFilter === 'COMPLETED'
@@ -1365,7 +1485,7 @@ export default function App() {
               <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                 
                 {/* Column 1 & 2: Live Manufacturing Workbench Monitoring */}
-                <div className="xl:col-span-2 p-6 bg-[#121214]/95 border border-gray-900 rounded-3xl text-left space-y-4 shadow-xl">
+                <div id="live-workbench-monitor" className="xl:col-span-2 p-6 bg-[#121214]/95 border border-gray-900 rounded-3xl text-left space-y-4 shadow-xl">
                   <div className="flex flex-col md:flex-row md:items-center justify-between pb-3.5 border-b border-gray-800 gap-3">
                     <div>
                       <h3 className="text-sm font-bold uppercase tracking-wider text-white">Live Manufacturing Workbench Monitoring</h3>
@@ -1492,7 +1612,7 @@ export default function App() {
                 </div>
 
                 {/* Column 3: Live Artisan Bench Status (Busy vs. Free) */}
-                <div className="p-6 bg-[#121214]/95 border border-gray-900 rounded-3xl text-left space-y-4 shadow-xl flex flex-col justify-start">
+                <div id="live-artisan-workbench" className="p-6 bg-[#121214]/95 border border-gray-900 rounded-3xl text-left space-y-4 shadow-xl flex flex-col justify-start">
                   <div className="pb-3 border-b border-gray-800">
                     <h3 className="text-sm font-bold uppercase tracking-wider text-white flex items-center gap-2">
                       <Users className="w-4 h-4 text-[#d4af37]" /> Live Artisan Bench Status
@@ -1819,10 +1939,15 @@ export default function App() {
           {activeTab === 'tracker' && (
             <JobBagTracker 
               tasks={tasks} 
+              currentUser={currentUser}
               onSelectEmployee={handleSelectEmployee} 
               selectedTrackerJobId={trackerSelectedJobId}
               onSelectTrackerJobId={setTrackerSelectedJobId}
             />
+          )}
+
+          {activeTab === 'testing' && currentUser.role === 'SUPER_ADMIN' && (
+            <TestingCenter />
           )}
         </main>
       </div>
@@ -2226,9 +2351,18 @@ export default function App() {
             </button>
 
             <div className="flex items-center gap-4 border-b border-gray-800 pb-4">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#d4af37] to-[#aa7c11] text-black flex items-center justify-center text-lg font-extrabold uppercase shadow-lg select-all">
-                {inspectedEmployee.fullName.split(' ').map((n: string)=>n[0]).join('')}
-              </div>
+              {inspectedEmployee.profileImage ? (
+                <img
+                  src={inspectedEmployee.profileImage}
+                  alt={inspectedEmployee.fullName}
+                  className="w-12 h-12 rounded-2xl object-cover shadow-lg border border-[#d4af37]/40 shrink-0"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#d4af37] to-[#aa7c11] text-black flex items-center justify-center text-lg font-extrabold uppercase shadow-lg select-all">
+                  {inspectedEmployee.fullName.split(' ').map((n: string)=>n[0]).join('')}
+                </div>
+              )}
               <div>
                 <span className="text-[9px] uppercase tracking-widest text-[#d4af37] font-mono font-bold block mb-0.5">
                   Artisan Database Profile

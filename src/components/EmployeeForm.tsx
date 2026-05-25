@@ -13,6 +13,20 @@ interface EmployeeFormProps {
   onSelectEmployee?: (emp: UserType) => void;
 }
 
+const safeResponseParse = async (res: Response) => {
+  try {
+    const contentType = res.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      return await res.json();
+    } else {
+      const text = await res.text();
+      return { message: text || `HTTP Error ${res.status}: ${res.statusText}` };
+    }
+  } catch (err) {
+    return { message: `HTTP Parsing Error ${res.status}: ${res.statusText}` };
+  }
+};
+
 export function EmployeeForm({ currentUser, onRefreshMetrics, onSelectEmployee }: EmployeeFormProps) {
   const [employees, setEmployees] = useState<UserType[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
@@ -28,6 +42,7 @@ export function EmployeeForm({ currentUser, onRefreshMetrics, onSelectEmployee }
   const [skillLevel, setSkillLevel] = useState<'Beginner' | 'Intermediate' | 'Expert' | 'Master'>('Expert');
   const [leaveBalance, setLeaveBalance] = useState(15);
   const [password, setPassword] = useState('Admin@123');
+  const [profileImage, setProfileImage] = useState('');
 
   // Selected employee for editing properties
   const [editingEmp, setEditingEmp] = useState<UserType | null>(null);
@@ -83,13 +98,14 @@ export function EmployeeForm({ currentUser, onRefreshMetrics, onSelectEmployee }
           skillLevel,
           leaveBalance,
           password,
+          profileImage,
           userId: currentUser.id,
           userName: currentUser.fullName,
           userRole: currentUser.role
         })
       });
 
-      const data = await res.json();
+      const data = await safeResponseParse(res);
       if (!res.ok) {
         throw new Error(data.message || 'Action rejected by server.');
       }
@@ -100,6 +116,7 @@ export function EmployeeForm({ currentUser, onRefreshMetrics, onSelectEmployee }
       setPhone('');
       setLeaveBalance(15);
       setPassword('Admin@123');
+      setProfileImage('');
       fetchEmployees();
       if (onRefreshMetrics) onRefreshMetrics();
     } catch (err: any) {
@@ -144,6 +161,7 @@ export function EmployeeForm({ currentUser, onRefreshMetrics, onSelectEmployee }
           fullName: editingEmp.fullName,
           email: editingEmp.email,
           phone: editingEmp.phone,
+          profileImage: editingEmp.profileImage,
           department: editingEmp.department,
           specialization: editingEmp.specialization,
           skillLevel: editingEmp.skillLevel,
@@ -255,9 +273,9 @@ export function EmployeeForm({ currentUser, onRefreshMetrics, onSelectEmployee }
                   className="w-full bg-[#1c1c1e] border border-gray-800 rounded-lg text-xs p-2.5 text-gray-200 font-bold"
                 >
                   <option value="EMPLOYEE">EMPLOYEE</option>
-                  <option value="ADMIN">TL (ADMIN)</option>
                   <option value="QC">QC TEAM</option>
-                  <option value="SUPER_ADMIN">SUPER_ADMIN</option>
+                  {currentUser.role === 'SUPER_ADMIN' && <option value="ADMIN">TL (ADMIN)</option>}
+                  {currentUser.role === 'SUPER_ADMIN' && <option value="SUPER_ADMIN">SUPER_ADMIN</option>}
                 </select>
               </div>
 
@@ -315,6 +333,67 @@ export function EmployeeForm({ currentUser, onRefreshMetrics, onSelectEmployee }
               />
             </div>
 
+            <div className="space-y-2 p-3.5 bg-[#18181b]/55 border border-gray-800/80 rounded-xl">
+              <span className="block text-[10px] uppercase font-bold text-[#d4af37] tracking-wider">Artisan Profile Photo</span>
+              <div className="flex items-center gap-3">
+                {profileImage ? (
+                  <div className="relative p-0.5 border border-[#d4af37]/40 rounded-full bg-black shrink-0">
+                    <img
+                      src={profileImage}
+                      alt="Artisan Portrait Preview"
+                      className="w-11 h-11 rounded-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setProfileImage('')}
+                      className="absolute -top-1 -right-1 bg-rose-600 hover:bg-rose-500 rounded-full text-white text-[8px] w-4 h-4 flex items-center justify-center font-bold border border-black"
+                      title="Clear Photo"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <div className="w-11 h-11 rounded-full border border-dashed border-gray-700 flex items-center justify-center text-gray-600 font-bold text-[9px] bg-black uppercase select-none shrink-0">
+                    No Pic
+                  </div>
+                )}
+                <div className="flex-1 space-y-1.5 text-left">
+                  <input
+                    type="text"
+                    placeholder="Paste Web Portrait URL"
+                    value={profileImage}
+                    onChange={(e) => setProfileImage(e.target.value)}
+                    className="w-full bg-[#0a0a0c] border border-gray-850 rounded-lg text-[10px] p-2 text-gray-300 focus:outline-none focus:border-[#d4af37]"
+                  />
+                  <div className="relative">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setProfileImage(reader.result as string);
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      className="hidden"
+                      id="artisan-portrait-uploader"
+                    />
+                    <label
+                      htmlFor="artisan-portrait-uploader"
+                      className="inline-block px-3 py-1 bg-gray-850 hover:bg-gray-800 text-gray-300 text-[9px] font-extrabold uppercase rounded border border-gray-700 cursor-pointer select-none transition"
+                    >
+                      Choose Local Image File
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <button
               type="submit"
               className="w-full py-3 bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black font-semibold text-xs rounded-xl hover:brightness-110 flex items-center justify-center gap-2"
@@ -344,10 +423,19 @@ export function EmployeeForm({ currentUser, onRefreshMetrics, onSelectEmployee }
                     data-hover-employee-id={emp.id}
                     className="p-4 bg-gray-900/40 border border-gray-800 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-[#d4af37]/40 hover:bg-gray-800/10 transition cursor-pointer"
                   >
-                    <div className="flex gap-3 text-left">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#d4af37]/25 to-transparent border border-[#d4af37]/40 flex items-center justify-center text-white font-bold text-xs">
-                        {emp.fullName.split(' ').map(n=>n[0]).join('')}
-                      </div>
+                    <div className="flex gap-3 text-left items-center">
+                      {emp.profileImage ? (
+                        <img
+                          src={emp.profileImage}
+                          alt={emp.fullName}
+                          className="w-10 h-10 rounded-full object-cover border border-[#d4af37]/40 shrink-0"
+                          referrerPolicy="no-referrer"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#d4af37]/25 to-transparent border border-[#d4af37]/40 flex items-center justify-center text-white font-bold text-xs font-mono shrink-0">
+                          {emp.fullName.split(' ').map(n=>n[0]).join('')}
+                        </div>
+                      )}
                       <div>
                         <div className="flex flex-wrap items-center gap-1.5">
                           <h4 className="text-sm font-semibold text-white">{emp.fullName}</h4>
@@ -474,6 +562,57 @@ export function EmployeeForm({ currentUser, onRefreshMetrics, onSelectEmployee }
                   onChange={(e) => setEditingEmp({ ...editingEmp, phone: e.target.value })}
                   className="w-full bg-[#1c1c1e] border border-gray-800 rounded-lg text-xs p-2 text-white"
                 />
+              </div>
+
+              <div>
+                <label className="block text-[10px] text-gray-400 uppercase mb-1">Teammate Profile Photo</label>
+                <div className="flex items-center gap-3 p-2 bg-[#18181b]/55 border border-gray-800 rounded-lg">
+                  {editingEmp.profileImage ? (
+                    <img 
+                      src={editingEmp.profileImage} 
+                      alt="Artisan Portrait Preview" 
+                      className="w-10 h-10 rounded-full object-cover shrink-0"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full border border-dashed border-gray-750 flex items-center justify-center text-gray-650 font-bold text-[8px] uppercase select-none shrink-0 bg-black">
+                      No Pic
+                    </div>
+                  )}
+                  <div className="flex-1 space-y-1 text-left">
+                    <input
+                      type="text"
+                      placeholder="Paste portrait URL"
+                      value={editingEmp.profileImage || ''}
+                      onChange={(e) => setEditingEmp({ ...editingEmp, profileImage: e.target.value })}
+                      className="w-full bg-[#0a0a0c] border border-gray-850 rounded text-[10px] p-1.5 text-gray-300 focus:outline-none focus:border-[#d4af37]"
+                    />
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              setEditingEmp({ ...editingEmp, profileImage: reader.result as string });
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                        className="hidden"
+                        id="artisan-edit-portrait"
+                      />
+                      <label 
+                        htmlFor="artisan-edit-portrait"
+                        className="inline-block px-2.5 py-0.5 bg-gray-850 hover:bg-gray-800 text-gray-300 text-[8px] font-bold uppercase rounded border border-gray-750 cursor-pointer select-none transition"
+                      >
+                        Upload Photo File
+                      </label>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
