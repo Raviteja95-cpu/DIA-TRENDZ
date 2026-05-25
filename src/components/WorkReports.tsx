@@ -4,6 +4,8 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import jsPDF from 'jspdf';
+import { toJpeg } from 'html-to-image';
 import {
   TrendingUp,
   Printer,
@@ -35,9 +37,7 @@ export function WorkReports({ currentUser, onSelectEmployee }: WorkReportsProps)
 
   // Filter & selections state
   const [reportType, setReportType] = useState<'all-employees' | 'single-employee' | 'jewelry'>('all-employees');
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
-  const [startDateStr, setStartDateStr] = useState<string>('');
-  const [endDateStr, setEndDateStr] = useState<string>('');
+  const [employeeSearchQuery, setEmployeeSearchQuery] = useState<string>('');
   const [selectedMonth, setSelectedMonth] = useState<string>(''); // YYYY-MM format
 
   useEffect(() => {
@@ -56,12 +56,6 @@ export function WorkReports({ currentUser, onSelectEmployee }: WorkReportsProps)
         const tskList: JobCard[] = await tskRes.json();
         setEmployees(empList);
         setTasks(tskList);
-
-        // Pre-select first employee
-        const staffList = empList.filter(e => e.role === 'EMPLOYEE');
-        if (staffList.length > 0) {
-          setSelectedEmployeeId(staffList[0].id);
-        }
       }
     } catch (err) {
       console.error('Error fetching reporting database:', err);
@@ -96,20 +90,6 @@ export function WorkReports({ currentUser, onSelectEmployee }: WorkReportsProps)
       }
     }
 
-    // Filter by Start Date
-    if (startDateStr) {
-      const start = new Date(startDateStr);
-      start.setHours(0, 0, 0, 0);
-      if (taskDate < start) return false;
-    }
-
-    // Filter by End Date
-    if (endDateStr) {
-      const end = new Date(endDateStr);
-      end.setHours(23, 59, 59, 999);
-      if (taskDate > end) return false;
-    }
-
     return true;
   };
 
@@ -122,30 +102,235 @@ export function WorkReports({ currentUser, onSelectEmployee }: WorkReportsProps)
       const year = today.getFullYear();
       const month = String(today.getMonth() + 1).padStart(2, '0');
       setSelectedMonth(`${year}-${month}`);
-      setStartDateStr('');
-      setEndDateStr('');
-    } else if (type === 'last-30') {
-      setSelectedMonth('');
-      const prior = new Date();
-      prior.setDate(today.getDate() - 30);
-      setStartDateStr(prior.toISOString().split('T')[0]);
-      setEndDateStr(today.toISOString().split('T')[0]);
     } else {
       setSelectedMonth('');
-      setStartDateStr('');
-      setEndDateStr('');
     }
   };
 
-  // Handle printing standard screen
-  const triggerNativePrint = () => {
-    window.focus();
-    window.print();
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+
+  // Handle downloading PDF export
+  const handleDownloadPDF = async () => {
+    if (isGeneratingPDF) return;
+
+    try {
+      setIsGeneratingPDF(true);
+      
+      const doc = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      
+      // Decorative Header Block
+      doc.setFillColor(18, 18, 20); // Dark background #121214
+      doc.rect(0, 0, pageWidth, 42, 'F');
+      
+      // Gold accent signature line
+      doc.setFillColor(212, 175, 55); // Gold #d4af37
+      doc.rect(0, 42, pageWidth, 2, 'F');
+
+      doc.setTextColor(212, 175, 55); // Gold text
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "bold");
+      doc.text("DIATRENDZ LUXURY ERP ANALYTICAL SHEET", 14, 15);
+
+      doc.setTextColor(255, 255, 255); // White text
+      doc.setFontSize(22);
+      let title = "MASTER WORKSHOP REPORT";
+      if (reportType === 'single-employee') title = "SPECIALIST CRAFTSMAN DOSSIER";
+      else if (reportType === 'jewelry') title = "JEWELRY METRICS & DISPATCH";
+      doc.text(title, 14, 28);
+
+      // Right aligned meta attributes
+      doc.setTextColor(160, 160, 160); // Gray
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.text(`DATE OF REPORT: ${new Date().toLocaleDateString()}`, pageWidth - 14, 15, { align: 'right' });
+      doc.text(`BOUNDARY: ${selectedMonth ? selectedMonth : 'Cumulative History'}`, pageWidth - 14, 25, { align: 'right' });
+      
+      doc.setTextColor(0, 0, 0); // Reset text back to black
+      
+      // Import autotable dynamically to avoid missing types issues
+      const autoTable = (await import('jspdf-autotable')).default;
+
+      if (reportType === 'all-employees') {
+        doc.setDrawColor(212, 175, 55); // Gold border stroke
+        doc.setLineWidth(0.3);
+        
+        // Box 1
+        doc.rect(14, 55, 87, 22, 'S');
+        doc.setFontSize(8);
+        doc.setTextColor(110, 110, 110);
+        doc.setFont("helvetica", "bold");
+        doc.text("ACTIVE GOLD ALLOCATED / TOTAL WEIGHT", 18, 63);
+        doc.setFontSize(14);
+        doc.setTextColor(0, 0, 0);
+        doc.text(`${aggregateGramsGoldWeight(aggregateGramsOrFallback(aggregateGramsGolds))} g`, 18, 72);
+
+        // Box 2
+        doc.rect(106, 55, 89, 22, 'S');
+        doc.setFontSize(8);
+        doc.setTextColor(110, 110, 110);
+        doc.text("COMPLETED PRODUCTS / YIELD EFFICIENCY", 110, 63);
+        doc.setFontSize(14);
+        doc.setTextColor(0, 120, 0);
+        doc.text(`${aggregateCompletedTasks} Items`, 110, 72);
+
+        // Box 3
+        doc.rect(14, 82, 87, 22, 'S');
+        doc.setFontSize(8);
+        doc.setTextColor(110, 110, 110);
+        doc.text("TIMELINES DELAY COUNT / ACTION LIMITS", 18, 90);
+        doc.setFontSize(14);
+        doc.setTextColor(200, 0, 0);
+        doc.text(`${aggregateLateCount} Tardiness`, 18, 99);
+
+        // Box 4
+        doc.rect(106, 82, 89, 22, 'S');
+        doc.setFontSize(8);
+        doc.setTextColor(110, 110, 110);
+        doc.text("DISPATCH SUCCESS RATIO / ON-TIME COMPLIANCE", 110, 90);
+        doc.setFontSize(14);
+        doc.setTextColor(0, 0, 0);
+        let sr = Math.round(((aggregateCompletedTasks - aggregateLateCount) / (aggregateCompletedTasks || 1)) * 100);
+        doc.text(`${sr} %`, 110, 99);
+        
+        doc.setTextColor(0, 0, 0);
+        
+        const tableBody = employees.filter(e => e.role === 'EMPLOYEE').map(emp => {
+          const empTasks = filteredTasks.filter(t => t.assignedEmployeeId === emp.id);
+          const empActive = empTasks.filter(t => t.status !== 'Completed' && t.status !== 'Cancelled').length;
+          const empCompleted = empTasks.filter(t => t.status === 'Completed').length;
+          const empLate = empTasks.filter(t => t.status === 'Completed' && (t.actualTime || 0) > (t.approvedTime || t.estimatedTime || 0)).length;
+          let onTimeRate = empCompleted > 0 ? Math.round(((empCompleted - empLate) / empCompleted) * 100) : (emp.productivityScore || 100);
+          return [emp.fullName, emp.id, emp.department || 'Assembly', empActive.toString(), empCompleted.toString(), empLate.toString(), `${onTimeRate}%`];
+        });
+        
+        autoTable(doc, {
+          startY: 115,
+          head: [['Artisan Specialist', 'ID', 'Dept', 'Active Jobs', 'Completed', 'Delay Count', 'Accuracy']],
+          body: tableBody,
+          theme: 'grid',
+          headStyles: { fillColor: [18, 18, 20], textColor: [212, 175, 55], fontStyle: 'bold' },
+          styles: { fontSize: 9, cellPadding: 3 }
+        });
+      } else if (reportType === 'single-employee' && activeEmployeeModel) {
+        
+        doc.setDrawColor(212, 175, 55); 
+        doc.setLineWidth(0.3);
+
+        // Left box (Artisan Meta)
+        doc.rect(14, 55, 115, 30, 'S');
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8);
+        doc.setTextColor(110, 110, 110);
+        doc.text("ARTISAN NAME & CREDENTIAL", 18, 63);
+        doc.setFontSize(14);
+        doc.setTextColor(0, 0, 0);
+        doc.text(activeEmployeeModel.fullName.toUpperCase(), 18, 71);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text(`SECURE ID: ${activeEmployeeModel.id}  •  DEPT: ${activeEmployeeModel.department || 'GENERAL BENCH'}`, 18, 78);
+        
+        // Right box (Success Rate)
+        doc.rect(135, 55, 60, 30, 'S');
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8);
+        doc.setTextColor(110, 110, 110);
+        doc.text("ON-TIME SUCCESS YIELD", 139, 63);
+        doc.setFontSize(22);
+        doc.setTextColor(212, 175, 55); // Gold
+        doc.text(`${employeeSuccessRate}`, 139, 74);
+        doc.setFontSize(10);
+        doc.setTextColor(100, 100, 100);
+        doc.text("/ 100", 170, 74);
+        
+        doc.setFontSize(9);
+        doc.setTextColor(0, 0, 0);
+        doc.text(`JOBS HANDLED: ${employeeTasks.length}`, 139, 81);
+        
+        const tableBody = employeeTasks.map(t => {
+           return [t.id, t.jewelryType, t.status, `${t.goldWeight} g`, `${t.estimatedTime} hr`, `${t.actualTime || 0} hr`, t.dueDate];
+        });
+        
+        autoTable(doc, {
+          startY: 95,
+          head: [['Job ID', 'Target Type', 'Current Status', 'Allocated Gold', 'Est Hr', 'Actual Hr', 'Due Date']],
+          body: tableBody,
+          theme: 'grid',
+          headStyles: { fillColor: [18, 18, 20], textColor: [212, 175, 55], fontStyle: 'bold' },
+          styles: { fontSize: 9, cellPadding: 3 }
+        });
+      } else if (reportType === 'jewelry') {
+        
+        doc.setDrawColor(212, 175, 55); 
+        doc.setLineWidth(0.3);
+        
+        doc.rect(14, 55, pageWidth - 28, 25, 'S');
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8);
+        doc.setTextColor(110, 110, 110);
+        doc.text("CUMULATIVE ALLOY MATERIALS TRACKING (FINAL INCORPORATED WEIGHT)", 18, 63);
+        doc.setFontSize(18);
+        doc.setTextColor(0, 0, 0);
+        doc.text(`${aggregateGramsGoldWeight(aggregateGramsOrFallback(aggregateGramsGolds))} GRAMS GOLD ALLOCATED`, 18, 73);
+         
+         const tableBody = jewelryStatsObj.map(group => [
+            group.categoryName,
+            `${group.count} Jobs`,
+            `${group.goldWeight} g`,
+            group.completedCount.toString(),
+            group.lateCount.toString(),
+            `${group.lateRate}%`
+         ]);
+         
+         autoTable(doc, {
+           startY: 90,
+           head: [['Jewelry Design Group', 'Invoiced Items', 'Material Allocated', 'Completed Items', 'Late Items', 'Lateness Rate']],
+           body: tableBody,
+           theme: 'grid',
+           headStyles: { fillColor: [18, 18, 20], textColor: [212, 175, 55], fontStyle: 'bold' },
+           styles: { fontSize: 9, cellPadding: 3 }
+         });
+      }
+      
+      const pageEndHeight = doc.internal.pageSize.getHeight();
+      
+      // Final footer logic
+      doc.setDrawColor(200, 200, 200);
+      doc.setLineWidth(0.2);
+      doc.line(14, pageEndHeight - 25, pageWidth - 14, pageEndHeight - 25);
+      
+      doc.setFontSize(8);
+      doc.setTextColor(100, 100, 100);
+      doc.text("AUTHORITY APPROVER VERIFICATION: _______________________", 14, pageEndHeight - 15);
+      doc.text("DIATRENDZ MANUFACTURING ERP SECURE AUDIT LOG", pageWidth - 14, pageEndHeight - 15, { align: 'right' });
+      
+      let fileName = `Diatrendz_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+      if (reportType === 'single-employee' && activeEmployeeModel) {
+        fileName = `Diatrendz_Employee_${activeEmployeeModel.id}_Report.pdf`;
+      } else if (reportType === 'jewelry') {
+        fileName = `Diatrendz_Jewelry_Report.pdf`;
+      }
+      
+      doc.save(fileName);
+    } catch (error) {
+      console.error('Error generating PDF', error);
+      alert('Failed to generate PDF report.');
+    } finally {
+      setIsGeneratingPDF(false);
+    }
   };
 
   // Calculate detailed Individual Employee stats
-  const activeEmployeeModel = employees.find(e => e.id === selectedEmployeeId);
-  const employeeTasks = filteredTasks.filter(t => t.assignedEmployeeId === selectedEmployeeId);
+  let activeEmployeeModel = null;
+  if (employeeSearchQuery.trim()) {
+    activeEmployeeModel = employees.find(e => 
+      e.id.toLowerCase() === employeeSearchQuery.toLowerCase() || 
+      e.fullName.toLowerCase() === employeeSearchQuery.toLowerCase()
+    );
+  }
+  
+  const employeeTasks = activeEmployeeModel ? filteredTasks.filter(t => t.assignedEmployeeId === activeEmployeeModel.id) : [];
   const completedEmployeeTasks = employeeTasks.filter(t => t.status === 'Completed');
 
   // Success rate calculator:
@@ -212,12 +397,15 @@ export function WorkReports({ currentUser, onSelectEmployee }: WorkReportsProps)
           </p>
         </div>
 
-        <button
-          onClick={triggerNativePrint}
-          className="p-2.5 px-5 bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow-[0_4px_15px_rgba(212,175,55,0.2)] hover:brightness-110 transition shrink-0"
-        >
-          <Printer className="w-4 h-4" /> Print Custom Sheet Report
-        </button>
+        <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+          <button
+            onClick={handleDownloadPDF}
+            disabled={isGeneratingPDF}
+            className="p-2.5 px-5 bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow-[0_4px_15px_rgba(212,175,55,0.2)] hover:brightness-110 transition shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Download className="w-4 h-4" /> {isGeneratingPDF ? 'Generating...' : 'Download PDF Report (System Format)'}
+          </button>
+        </div>
       </div>
 
       {/* Global Filter Bar: hidden during browser printing */}
@@ -242,62 +430,49 @@ export function WorkReports({ currentUser, onSelectEmployee }: WorkReportsProps)
             </select>
           </div>
 
-          {/* Individual employee dropdown (only matches if report type matches) */}
+          {/* Specific Search for Employee (removes long dropdowns) */}
           {reportType === 'single-employee' && (
-            <div>
-              <label className="block text-[10px] text-gray-400 uppercase font-bold mb-1">Specialist Craftsman</label>
-              <select
-                value={selectedEmployeeId}
-                onChange={(e) => setSelectedEmployeeId(e.target.value)}
+            <div className="relative">
+              <label className="block text-[10px] text-gray-400 uppercase font-bold mb-1">Search Specialist ID or Name</label>
+              <input
+                type="text"
+                placeholder="Type 'S' or employee ID..."
+                value={employeeSearchQuery}
+                onChange={(e) => setEmployeeSearchQuery(e.target.value)}
                 className="w-full bg-gray-950 border border-gray-800 rounded-xl text-xs p-2.5 text-white focus:border-[#d4af37]"
-              >
-                {employees
-                  .filter(e => e.role === 'EMPLOYEE')
-                  .map(emp => (
-                    <option key={emp.id} value={emp.id}>{emp.fullName} ({emp.department || 'Bench'})</option>
-                  ))}
-              </select>
+              />
+              {employeeSearchQuery.trim() && !employees.find(e => e.fullName.toLowerCase() === employeeSearchQuery.toLowerCase() || e.id.toLowerCase() === employeeSearchQuery.toLowerCase()) && (
+                <div className="absolute top-full left-0 z-50 mt-2 w-full bg-[#0b152d] border border-[#1f3460] rounded-xl shadow-2xl max-h-56 overflow-y-auto">
+                  {employees
+                    .filter(e => e.role === 'EMPLOYEE' && (e.fullName.toLowerCase().startsWith(employeeSearchQuery.toLowerCase()) || e.id.toLowerCase().startsWith(employeeSearchQuery.toLowerCase())))
+                    .map(emp => (
+                      <button
+                        key={emp.id}
+                        type="button"
+                        onClick={() => {
+                          setEmployeeSearchQuery(emp.id);
+                        }}
+                        className="w-full text-left px-4 py-3 text-sm text-white hover:bg-[#1a2b53] border-b border-[#1f3460]/50 last:border-0 transition-colors list-none"
+                      >
+                        <span className="font-bold">{emp.fullName}</span> <span className="text-[#d4af37] font-mono text-xs ml-2">({emp.id})</span>
+                      </button>
+                    ))}
+                </div>
+              )}
             </div>
           )}
 
           {/* Select Specific Month (e.g. month-by-month filter) */}
-          <div className={reportType !== 'single-employee' ? 'md:col-span-1' : ''}>
+          <div className="md:col-span-2">
             <label className="block text-[10px] text-gray-400 uppercase font-bold mb-1">Calendar Month Filter</label>
             <input
               type="month"
               value={selectedMonth}
               onChange={(e) => {
                 setSelectedMonth(e.target.value);
-                setStartDateStr(''); // clear conflicting date values
-                setEndDateStr('');
               }}
               className="w-full bg-gray-950 border border-gray-800 rounded-xl text-xs p-2 text-white font-mono focus:border-[#d4af37]"
             />
-          </div>
-
-          {/* Standard Free Date Range filters */}
-          <div className="md:col-span-2">
-            <span className="block text-[10px] text-gray-400 uppercase font-bold mb-1">Or Specific Custom Date Range Filter</span>
-            <div className="grid grid-cols-2 gap-2">
-              <input
-                type="date"
-                value={startDateStr}
-                onChange={(e) => {
-                  setStartDateStr(e.target.value);
-                  setSelectedMonth(''); // clear conflicting month value
-                }}
-                className="bg-gray-950 border border-gray-800 rounded-xl text-xs p-2 text-gray-300 font-mono w-full focus:border-[#d4af37]"
-              />
-              <input
-                type="date"
-                value={endDateStr}
-                onChange={(e) => {
-                  setEndDateStr(e.target.value);
-                  setSelectedMonth(''); // clear conflicting month value
-                }}
-                className="bg-gray-950 border border-gray-800 rounded-xl text-xs p-2 text-gray-300 font-mono w-full focus:border-[#d4af37]"
-              />
-            </div>
           </div>
 
         </div>
@@ -312,12 +487,6 @@ export function WorkReports({ currentUser, onSelectEmployee }: WorkReportsProps)
             This Month
           </button>
           <button
-            onClick={() => setQuickFilter('last-30')}
-            className="px-2.5 py-1 bg-gray-950 hover:bg-gray-900 text-gray-300 rounded border border-gray-800 hover:border-[#d4af37]"
-          >
-            Last 30 Days
-          </button>
-          <button
             onClick={() => setQuickFilter('all-time')}
             className="px-2.5 py-1 bg-[#d4af37]/10 hover:bg-[#d4af37]/20 text-[#d4af37] rounded border border-[#d4af37]/30"
           >
@@ -328,8 +497,6 @@ export function WorkReports({ currentUser, onSelectEmployee }: WorkReportsProps)
           <div className="ml-auto text-gray-400 font-mono">
             {selectedMonth ? (
               <span>Active Target: <b>Month of {selectedMonth}</b></span>
-            ) : startDateStr || endDateStr ? (
-              <span>Active Range: <b>{startDateStr || 'Anytime'}</b> to <b>{endDateStr || 'Anytime'}</b></span>
             ) : (
               <span>Active Range: <b>All Time (Cumulative record folders)</b></span>
             )}
@@ -343,11 +510,6 @@ export function WorkReports({ currentUser, onSelectEmployee }: WorkReportsProps)
       {/* DYNAMIC SHEET REPORT PREVIEW CARD: Visually robust on dashboard and strictly print-adapted */}
       <div id="enterprise-printing-area" className="bg-[#121214] border border-gray-900 rounded-3xl p-6 md:p-10 text-left shadow-2xl relative overflow-hidden print:border-none print:shadow-none print:p-0 print:bg-white print:text-black">
         
-        {/* Decorative Watermark background (hidden on print) */}
-        <div className="absolute top-2 right-2 p-10 font-serif text-[120px] text-gray-900/15 select-none pointer-events-none uppercase font-extrabold rotate-12 print:hidden">
-          DIATRENDZ
-        </div>
-
         {/* SHEET HEADER SPECIFICATIONS */}
         <div className="border-b-2 border-[#d4af37] pb-6 mb-8 flex flex-col md:flex-row md:items-start justify-between gap-6 print:border-black print:pb-4">
           
@@ -373,7 +535,7 @@ export function WorkReports({ currentUser, onSelectEmployee }: WorkReportsProps)
               </div>
               <div>
                 <span>Temporal Boundary:</span> <strong className="text-[#d4af37] print:text-black">
-                  {selectedMonth ? `Month: ${selectedMonth}` : (startDateStr || endDateStr) ? `Date range selection` : 'Full cumulative history'}
+                  {selectedMonth ? `Month: ${selectedMonth}` : 'Full cumulative history'}
                 </strong>
               </div>
             </div>
@@ -495,7 +657,7 @@ export function WorkReports({ currentUser, onSelectEmployee }: WorkReportsProps)
                           <tr 
                             key={emp.id} 
                             onClick={() => {
-                              setSelectedEmployeeId(emp.id);
+                              setEmployeeSearchQuery(emp.id);
                               setReportType('single-employee');
                               onSelectEmployee?.(emp);
                             }}
@@ -544,7 +706,12 @@ export function WorkReports({ currentUser, onSelectEmployee }: WorkReportsProps)
         {/* ======================================= */}
         {/* OPTION B: INDIVIDUAL SPECIALIST REPORT */}
         {/* ======================================= */}
-        {reportType === 'single-employee' && activeEmployeeModel && (
+        {reportType === 'single-employee' && (
+          !activeEmployeeModel ? (
+            <div className="py-12 text-center text-gray-400">
+              Please search for an Employee ID (e.g. EMP-001) or Name to generate their report.
+            </div>
+          ) : (
           <div className="space-y-8">
             
             {/* Employee metadata section */}
@@ -695,6 +862,7 @@ export function WorkReports({ currentUser, onSelectEmployee }: WorkReportsProps)
             </div>
 
           </div>
+          )
         )}
 
         {/* ======================================= */}

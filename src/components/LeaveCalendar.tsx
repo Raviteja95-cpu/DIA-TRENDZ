@@ -60,9 +60,6 @@ export function LeaveCalendar({ currentUser, onRefreshMetrics }: LeaveCalendarPr
   // Employee Data Safeguard state
   const [showOthersLeaves, setShowOthersLeaves] = useState(currentUser.role !== 'EMPLOYEE');
 
-  // Sub tab for clean navigation and aligned layout
-  const [activeSubTab, setActiveSubTab] = useState<'calendar' | 'applications' | 'holidays'>('calendar');
-
   // Leave extension tool states
   const [extendingId, setExtendingId] = useState<string | null>(null);
   const [extensionEndDate, setExtensionEndDate] = useState('');
@@ -388,46 +385,10 @@ export function LeaveCalendar({ currentUser, onRefreshMetrics }: LeaveCalendarPr
         </div>
       </div>
 
-      {/* Sub-tabs navigation to align items properly */}
-      <div className="flex border-b border-gray-800 gap-1 pb-px">
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('calendar')}
-          className={`px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-all duration-150 relative cursor-pointer ${
-            activeSubTab === 'calendar'
-              ? 'text-[#d4af37] border-b-2 border-[#d4af37]'
-              : 'text-gray-400 hover:text-white'
-          }`}
-        >
-          Calendar Overview
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('applications')}
-          className={`px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-all duration-150 relative cursor-pointer ${
-            activeSubTab === 'applications'
-              ? 'text-[#d4af37] border-b-2 border-[#d4af37]'
-              : 'text-gray-400 hover:text-white'
-          }`}
-        >
-          Leave Applications
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('holidays')}
-          className={`px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-all duration-150 relative cursor-pointer ${
-            activeSubTab === 'holidays'
-              ? 'text-[#d4af37] border-b-2 border-[#d4af37]'
-              : 'text-gray-400 hover:text-white'
-          }`}
-        >
-          Company Holidays
-        </button>
-      </div>
+      {/* Attendance & Leave Grid Layout */}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Form (Request Leave) or Profile Leave Balance Grid */}
-        {activeSubTab === 'applications' && (
           <div className="bg-[#121214]/95 border border-gray-800 rounded-2xl p-6 self-start space-y-6">
           <div className="pb-3 border-b border-gray-800 flex items-center gap-2">
             <Calendar className="w-4 h-4 text-[#d4af37]" />
@@ -542,14 +503,11 @@ export function LeaveCalendar({ currentUser, onRefreshMetrics }: LeaveCalendarPr
             </button>
           </form>
         </div>
-        )}
 
         {/* Attendance Review List & Active Leave Calendar visualization */}
-        <div className={`${activeSubTab === 'applications' ? 'lg:col-span-2' : 'lg:col-span-3'} space-y-6`}>
-          {activeSubTab === 'calendar' && (
-            <>
-              {/* Calendar Display Grid */}
-              <div className="p-6 bg-[#121214]/95 border border-gray-800 rounded-2xl relative overflow-hidden">
+        <div className="lg:col-span-2 space-y-6">
+          {/* Calendar Display Grid */}
+          <div className="p-6 bg-[#121214]/95 border border-gray-800 rounded-2xl relative overflow-hidden">
             <span className="text-xs uppercase tracking-widest text-[#f3e5ab] font-bold block pb-3 border-b border-gray-800 mb-4">
               FACTORY VACATION CALENDAR MAP
             </span>
@@ -631,11 +589,11 @@ export function LeaveCalendar({ currentUser, onRefreshMetrics }: LeaveCalendarPr
               </p>
 
               <div className="space-y-3">
-                {employees.map((emp) => {
+                {employees.map((emp, index) => {
                   const stats = getEmployeeLeaveStats(emp.id);
                   const isExpanded = expandedStatsEmpId === emp.id;
                   return (
-                    <div key={emp.id} className="p-3 bg-gray-950/60 border border-gray-900 rounded-xl hover:border-gray-800 transition text-xs">
+                    <div key={`${emp.id}-${index}`} className="p-3 bg-gray-950/60 border border-gray-900 rounded-xl hover:border-gray-800 transition text-xs">
                       <div 
                         onClick={() => setExpandedStatsEmpId(isExpanded ? null : emp.id)}
                         className="flex items-center justify-between gap-4 cursor-pointer select-none"
@@ -667,8 +625,8 @@ export function LeaveCalendar({ currentUser, onRefreshMetrics }: LeaveCalendarPr
                             <p className="text-[10px] text-gray-500 italic">No approved absence intervals recorded in the system.</p>
                           ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                              {stats.detailedLeaves.map(dt => (
-                                <div key={dt.id} className="p-2.5 border border-gray-900 bg-gray-950/80 rounded-lg text-[10px] flex justify-between items-center">
+                              {stats.detailedLeaves.map((dt, index) => (
+                                <div key={`${dt.id}-${index}`} className="p-2.5 border border-gray-900 bg-gray-950/80 rounded-lg text-[10px] flex justify-between items-center">
                                   <div className="space-y-0.5">
                                     <span className="font-bold text-gray-300 capitalize flex items-center gap-1">
                                       <Clock className="w-3 h-3 text-slate-400" /> {dt.type}
@@ -688,13 +646,8 @@ export function LeaveCalendar({ currentUser, onRefreshMetrics }: LeaveCalendarPr
                   );
                 })}
               </div>
-            </div>
-          )}
-            </>
-          )}
+            </div> )}
 
-          {activeSubTab === 'holidays' && (
-            <>
 
           {/* Corporate Holidays Management */}
           <div className="p-6 bg-[#121214]/95 border border-gray-800 rounded-2xl text-left space-y-6">
@@ -874,11 +827,7 @@ export function LeaveCalendar({ currentUser, onRefreshMetrics }: LeaveCalendarPr
               </div>
             </div>
           </div>
-            </>
-          )}
 
-          {activeSubTab === 'applications' && (
-            <>
 
           {/* Roster Requests (Admin Approval Section) */}
           <div className="p-6 bg-[#121214]/95 border border-gray-800 rounded-2xl">
@@ -896,10 +845,10 @@ export function LeaveCalendar({ currentUser, onRefreshMetrics }: LeaveCalendarPr
               <div className="space-y-4 text-xs">
                 {requests
                   .filter(req => currentUser.role !== 'EMPLOYEE' || req.employeeId === currentUser.id)
-                  .map((req) => {
+                  .map((req, index) => {
                     const days = Math.max(1, Math.round((new Date(req.endDate).getTime() - new Date(req.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1);
                     return (
-                      <div key={req.id} className="p-4 bg-gray-900/60 border border-gray-800 rounded-xl space-y-3">
+                      <div key={`${req.id}-${index}`} className="p-4 bg-gray-900/60 border border-gray-800 rounded-xl space-y-3">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
                           <div className="text-left">
                             <span className="text-[10px] font-mono text-[#d4af37]">{req.id} • {req.leaveType.toUpperCase()}</span>

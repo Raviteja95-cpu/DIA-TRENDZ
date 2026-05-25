@@ -747,6 +747,37 @@ app.post('/api/tasks', (req, res) => {
   res.json({ success: true, task: newJob });
 });
 
+// Reassign Task API
+app.post('/api/tasks/reassign', (req, res) => {
+  const { taskId, newEmployeeId, newEmployeeName, userId, userName, userRole } = req.body;
+  const db = loadData();
+
+  const taskIdx = db.tasks.findIndex((t: any) => t.id === taskId || t.taskId === taskId);
+  if (taskIdx === -1) {
+    return res.status(404).json({ error: 'Task not found' });
+  }
+
+  const task = db.tasks[taskIdx];
+  const oldEmployeeName = task.assignedEmployeeName || 'Unassigned';
+  
+  task.assignedEmployeeId = newEmployeeId;
+  task.assignedEmployeeName = newEmployeeName;
+
+  // Add history event for reassignment
+  task.history.push({
+    status: task.status,
+    payload: `Job formally reassigned from ${oldEmployeeName} to ${newEmployeeName}.`,
+    user: userName,
+    timestamp: new Date().toISOString()
+  });
+
+  saveData(db);
+
+  addAuditLog(userId, userName, userRole, 'Reassign Job', `Administrator reassigned job card ${taskId} to ${newEmployeeName}.`);
+  
+  res.json({ success: true, task });
+});
+
 // Update Task Lifecycle Status API
 app.post('/api/tasks/status', (req, res) => {
   const { taskId, status, extraPayload, remarks, userId, userName, userRole } = req.body;

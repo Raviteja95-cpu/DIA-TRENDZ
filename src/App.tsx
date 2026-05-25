@@ -129,6 +129,8 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [inspectedTask, setInspectedTask] = useState<JobCard | null>(null);
+  const [reassigningTaskId, setReassigningTaskId] = useState<string | null>(null);
+  const [reassignTargetEmpId, setReassignTargetEmpId] = useState<string>('');
   const [inspectedEmployee, setInspectedEmployee] = useState<any | null>(null);
   const [trackerSelectedJobId, setTrackerSelectedJobId] = useState<string | null>(null);
   const [hoverTooltip, setHoverTooltip] = useState<{
@@ -424,6 +426,49 @@ export default function App() {
       console.error(err);
       addVisualNotification(`Approval Failure: ${err.message || err}`, true);
       setApprovingTask(null);
+    }
+  };
+
+  const handleReassignTask = async () => {
+    if (!reassigningTaskId || !reassignTargetEmpId) return;
+
+    const targetEmp = employees.find(e => e.id === reassignTargetEmpId);
+    if (!targetEmp) return;
+
+    try {
+      const res = await fetch('/api/tasks/reassign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          taskId: reassigningTaskId,
+          newEmployeeId: targetEmp.id,
+          newEmployeeName: targetEmp.fullName,
+          userId: currentUser.id,
+          userName: currentUser.fullName,
+          userRole: currentUser.role
+        })
+      });
+
+      const data = await safeResponseParse(res);
+      if (res.ok) {
+        setReassigningTaskId(null);
+        setReassignTargetEmpId('');
+        fetchLiveDashboardData();
+        addVisualNotification(`Job ${reassigningTaskId} formally reassigned to ${targetEmp.fullName}.`, false);
+        // Also update local inspectedTask state if we are inspecting it
+        if (inspectedTask && inspectedTask.id === reassigningTaskId) {
+          setInspectedTask({
+            ...inspectedTask, 
+            assignedEmployeeId: targetEmp.id, 
+            assignedEmployeeName: targetEmp.fullName
+          });
+        }
+      } else {
+        throw new Error(data.message || 'Error executing reassignment.');
+      }
+    } catch (err: any) {
+      console.error(err);
+      addVisualNotification(`Reassignment Failure: ${err.message || err}`, true);
     }
   };
 
@@ -1379,7 +1424,7 @@ export default function App() {
           {activeTab === 'dashboard' && currentUser.role !== 'EMPLOYEE' && currentUser.role !== 'QC' && (
             <div className="space-y-6">
               {/* Gold Counter Grid HUD */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 <div 
                   onClick={() => handleScrollToArtisans(artisanFilter === 'BUSY' ? 'ALL' : 'BUSY')}
                   className={`p-5 rounded-2xl border transition-all duration-200 text-left relative overflow-hidden cursor-pointer select-none ${
@@ -1474,6 +1519,33 @@ export default function App() {
                     title="Click to view completed jobs"
                   >
                     Completed Today: {metrics.completedToday}
+                  </div>
+                </div>
+
+                <div 
+                  onClick={() => handleScrollToLiveWorkbench(dashboardTaskFilter === 'QC_PENDING' ? 'ALL' : 'QC_PENDING')}
+                  className={`p-5 rounded-2xl border transition-all duration-200 text-left relative overflow-hidden cursor-pointer select-none ${
+                    dashboardTaskFilter === 'QC_PENDING'
+                      ? 'bg-indigo-950/25 border-indigo-500/80 shadow-lg shadow-indigo-500/15'
+                      : 'bg-[#121214]/90 border-gray-900 hover:border-indigo-500/40 hover:bg-indigo-950/5'
+                  }`}
+                  title="Click to view QC Pending jobs"
+                >
+                  <span className="text-[10px] text-indigo-400 uppercase tracking-widest font-bold block">Daily Quality Metrics</span>
+                  <div className="text-3xl font-extrabold text-indigo-400 mt-1.5 font-mono">{metrics.qcPendingJobs}</div>
+                  <div 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleScrollToLiveWorkbench(dashboardTaskFilter === 'COMPLETED' ? 'ALL' : 'COMPLETED');
+                    }}
+                    className={`text-[10px] flex items-center gap-1 font-semibold mt-1.5 px-2 py-0.5 rounded-lg w-max transition ${
+                      dashboardTaskFilter === 'COMPLETED'
+                        ? 'bg-[#d4af37]/15 text-[#d4af37] border border-[#d4af37]/30'
+                        : 'text-emerald-400 hover:bg-gray-800/40'
+                    }`}
+                    title="Items successfully shipped today"
+                  >
+                    ● {metrics.completedToday} Shipped Today
                   </div>
                 </div>
               </div>
@@ -2188,22 +2260,58 @@ export default function App() {
 
                 <div className="pt-2 text-xs text-left">
                   <span className="text-gray-500 block text-[9px] uppercase font-bold mb-0.5">Assigned Specialist Smith</span>
-                  <div className="p-2 bg-gray-950 border border-gray-900 rounded-xl flex items-center justify-between">
-                    <div>
-                      <span className="text-xs font-medium text-white block text-left">{inspectedTask.assignedEmployeeName}</span>
-                      <span className="text-[9px] text-[#f3e5ab]/80 font-mono block text-left">{inspectedTask.assignedEmployeeId}</span>
+                  <div className="p-2 bg-gray-950 border border-gray-900 rounded-xl space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-xs font-medium text-white block text-left">{inspectedTask.assignedEmployeeName}</span>
+                        <span className="text-[9px] text-[#f3e5ab]/80 font-mono block text-left">{inspectedTask.assignedEmployeeId}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {currentUser.role !== 'EMPLOYEE' && (
+                          <>
+                            {['ADMIN', 'SUPER_ADMIN'].includes(currentUser.role) && (
+                              <button
+                                onClick={() => setReassigningTaskId(reassigningTaskId === inspectedTask.id ? null : inspectedTask.id)}
+                                className="p-1 px-2 border border-blue-900/50 hover:border-blue-500 text-[9px] text-blue-400 hover:text-white rounded bg-blue-950/30 transition flex items-center gap-1"
+                              >
+                                Reassign
+                              </button>
+                            )}
+                            <button
+                              onClick={() => {
+                                const targetEmp = employees.find(e => e.id === inspectedTask.assignedEmployeeId);
+                                if (targetEmp) setInspectedEmployee(targetEmp);
+                                setInspectedTask(null);
+                              }}
+                              className="p-1 px-2 border border-gray-800 hover:border-[#d4af37] text-[9px] text-gray-400 hover:text-white rounded bg-gray-900 transition flex items-center gap-1"
+                            >
+                              <User className="w-3 h-3" /> Profile
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
-                    {currentUser.role !== 'EMPLOYEE' && (
-                      <button
-                        onClick={() => {
-                          const targetEmp = employees.find(e => e.id === inspectedTask.assignedEmployeeId);
-                          if (targetEmp) setInspectedEmployee(targetEmp);
-                          setInspectedTask(null);
-                        }}
-                        className="p-1 px-2 border border-gray-800 hover:border-[#d4af37] text-[9px] text-gray-400 hover:text-white rounded bg-gray-900 transition flex items-center gap-1"
-                      >
-                        <User className="w-3 h-3" /> Profile
-                      </button>
+                    
+                    {reassigningTaskId === inspectedTask.id && (
+                      <div className="pt-2 mt-2 border-t border-gray-800 flex gap-2">
+                        <select 
+                          className="flex-1 bg-gray-900 border border-gray-700 text-xs text-white rounded p-1"
+                          value={reassignTargetEmpId}
+                          onChange={(e) => setReassignTargetEmpId(e.target.value)}
+                        >
+                          <option value="">Select new artisan...</option>
+                          {employees.filter(e => e.category === 'Artisan' || e.category === 'Polisher' || e.category === 'Caster' || e.category === 'Setter').map(emp => (
+                            <option key={emp.id} value={emp.id}>{emp.fullName} ({emp.id})</option>
+                          ))}
+                        </select>
+                        <button 
+                          onClick={handleReassignTask}
+                          disabled={!reassignTargetEmpId}
+                          className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-[10px] px-2 py-1 rounded font-bold uppercase tracking-wider"
+                        >
+                          Save
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
