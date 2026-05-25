@@ -1,0 +1,219 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #d4af37;
+  --color-accent: #f3e5ab;
+  --font-sans: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  
+  --color-brand-deep: #04091a;
+  --color-brand-canvas: #070e24;
+  --color-brand-card: #0d1733;
+  --color-brand-lighter: #162447;
+  --color-brand-border: #1f3460;
+  --color-gold-500: #d4af37;
+  --color-gold-400: #f3e5ab;
+}
+
+/* Custom premium scrollbar for modern space-navy ambiance */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #04091a;
+}
+::-webkit-scrollbar-thumb {
+  background: #1f3460;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #d4af37;
+}
+
+/* Master high-contrast luxury navy overrides to replace uninspired gray-black layouts */
+body {
+  background-color: #04091a !important;
+  color: #cbd5e1 !important;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(30, 58, 138, 0.18) 0, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(212, 175, 55, 0.06) 0, transparent 40%);
+  background-attachment: fixed;
+}
+
+/* Redirection of classic template shades to a beautiful cohesive royal navy palette */
+.bg-\[\#121214\], 
+.bg-[#121214] {
+  background-color: #0b152d !important;
+  background-image: linear-gradient(135deg, rgba(13, 23, 51, 0.96), rgba(9, 17, 39, 0.99)) !important;
+  border-color: #1f3460 !important;
+}
+
+.bg-gray-950,
+.bg-gray-950\/95,
+.bg-gray-950\/70,
+.bg-gray-955\/65 {
+  background-color: #060c1c !important;
+  border-color: #182a4f !important;
+}
+
+.bg-gray-900 {
+  background-color: #0a1329 !important;
+  border-color: #1f3460 !important;
+}
+
+.bg-[#161618] {
+  background-color: #0a142c !important;
+  border-color: #1f3460 !important;
+}
+
+.bg-[#1a1a1c] {
+  background-color: #0a142c !important;
+  border-color: #1f3460 !important;
+}
+
+.bg-[#1c1c1e] {
+  background-color: #0e1c3d !important;
+  border-color: #1f3460 !important;
+}
+
+.bg-\[\#121214\]\/90 {
+  background-color: rgba(11, 21, 45, 0.92) !important;
+}
+
+.border-gray-900,
+.border-gray-950 {
+  border-color: #1f3460 !important;
+}
+
+.border-gray-800 {
+  border-color: #263e6e !important;
+}
+
+.border-gray-850 {
+  border-color: #223761 !important;
+}
+
+/* Softer and crisper contrast for data cells and subtitles */
+.text-gray-400 {
+  color: #94a3b8 !important;
+}
+
+.text-gray-500 {
+  color: #64748b !important;
+}
+
+.text-gray-300 {
+  color: #cbd5e1 !important;
+}
+
+/* Interactive card transitions */
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  transition-duration: 250ms;
+}
+
+@media print {
+  /* Hide every element on the screen by default */
+  html, body, #root, #root * {
+    visibility: hidden;
+  }
+
+  /* Show ONLY the high-fidelity enterprise custom sheet print container */
+  #enterprise-printing-area,
+  #enterprise-printing-area * {
+    visibility: visible !important;
+  }
+
+  /* Force absolute placement, taking 100% width of standard print pages */
+  #enterprise-printing-area {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 20px !important;
+    background-color: #ffffff !important;
+    background-image: none !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+  }
+
+  /* Reset body and background traits for clean paper feed */
+  body {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: #111111 !important;
+  }
+
+  /* Convert all gray-400, text-white, and amber/gold text to high contrast black or dark gray */
+  .print\:text-black,
+  #enterprise-printing-area text,
+  #enterprise-printing-area h1,
+  #enterprise-printing-area h2,
+  #enterprise-printing-area h3,
+  #enterprise-printing-area h4,
+  #enterprise-printing-area p,
+  #enterprise-printing-area span,
+  #enterprise-printing-area table,
+  #enterprise-printing-area tr,
+  #enterprise-printing-area td,
+  #enterprise-printing-area th,
+  #enterprise-printing-area div,
+  #enterprise-printing-area strong,
+  #enterprise-printing-area b,
+  #enterprise-printing-area i {
+    color: #111111 !important;
+    background-color: transparent !important;
+    border-color: #cccccc !important;
+    text-shadow: none !important;
+  }
+
+  /* Table borders & high contrast table header */
+  #enterprise-printing-area table {
+    border-collapse: collapse !important;
+    border-color: #333333 !important;
+    width: 100% !important;
+  }
+
+  #enterprise-printing-area th, 
+  #enterprise-printing-area td {
+    border-bottom: 1px solid #222222 !important;
+    color: #000000 !important;
+    padding: 8px 12px !important;
+  }
+
+  #enterprise-printing-area th {
+    font-weight: 800 !important;
+    border-bottom: 2px solid #000000 !important;
+    text-transform: uppercase !important;
+  }
+
+  /* Accent highlight overrides */
+  .text-\[\#d4af37\], 
+  .text-amber-400, 
+  .text-emerald-400, 
+  .text-[#f3e5ab],
+  .text-red-400 {
+    color: #000000 !important;
+    font-weight: bold !important;
+  }
+
+  /* Hide decorative screen elements in print dossiers */
+  .print\:hidden,
+  .print-hidden,
+  #enterprise-printing-area .print\:hidden,
+  #enterprise-printing-area .alert-pill,
+  #enterprise-printing-area .warn-banner {
+    display: none !important;
+    visibility: hidden !important;
+  }
+}
