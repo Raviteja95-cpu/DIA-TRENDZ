@@ -150,8 +150,8 @@ export function PerformanceRankings({ onSelectEmployee }: { onSelectEmployee?: (
                   </div>
 
                   <div className="flex items-center gap-4">
-                    <span className="text-[11px] bg-emerald-950/20 text-emerald-400 border border-emerald-900/40 p-1 px-2.5 rounded-lg text-xs font-semibold">
-                      {emp.skillLevel}
+                    <span className="text-[11px] bg-[#d4af37]/15 text-[#f3e5ab] border border-[#d4af37]/30 p-1 px-2.5 rounded-lg text-xs font-mono font-semibold">
+                      ID: {emp.id}
                     </span>
                     <div className="text-right">
                       <span className="text-[10px] text-gray-500 uppercase block">Yield RATIO</span>

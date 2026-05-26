@@ -739,7 +739,7 @@ export function WorkReports({ currentUser, onSelectEmployee }: WorkReportsProps)
                   Joining date: <b>{activeEmployeeModel.joiningDate || 'January 20, 2026'}</b>
                 </span>
                 <span className="text-[10px] block text-[#f3e5ab] mt-1 uppercase font-bold">
-                  Class: {activeEmployeeModel.skillLevel || 'Senior Specialist'}
+                  Specialty: {activeEmployeeModel.specialization || 'General Staff'}
                 </span>
               </div>
 

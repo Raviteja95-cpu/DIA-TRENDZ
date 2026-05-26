@@ -47,6 +47,11 @@ export function EmployeeForm({ currentUser, onRefreshMetrics, onSelectEmployee }
   // Selected employee for editing properties
   const [editingEmp, setEditingEmp] = useState<UserType | null>(null);
 
+  // States for deleting/offboarding employee
+  const [confirmDeleteUser, setConfirmDeleteUser] = useState<UserType | null>(null);
+  const [deleteError, setDeleteError] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const [formSuccess, setFormSuccess] = useState('');
   const [formError, setFormError] = useState('');
 
@@ -150,6 +155,38 @@ export function EmployeeForm({ currentUser, onRefreshMetrics, onSelectEmployee }
     }
   };
 
+  const executeDeleteEmployee = async () => {
+    if (!confirmDeleteUser) return;
+    setIsDeleting(true);
+    setDeleteError('');
+    try {
+      const res = await fetch('/api/employees/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: confirmDeleteUser.id,
+          userId: currentUser.id,
+          userName: currentUser.fullName,
+          userRole: currentUser.role,
+          currentUserEmail: currentUser.email
+        })
+      });
+
+      const data = await safeResponseParse(res);
+      if (!res.ok) {
+        throw new Error(data.message || 'Server rejected removal request.');
+      }
+
+      setConfirmDeleteUser(null);
+      fetchEmployees();
+      if (onRefreshMetrics) onRefreshMetrics();
+    } catch (err: any) {
+      setDeleteError(err.message || 'Action failed.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const handleSaveEdit = async () => {
     if (!editingEmp) return;
     try {
@@ -219,6 +256,7 @@ export function EmployeeForm({ currentUser, onRefreshMetrics, onSelectEmployee }
             <div>
               <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Full Name</label>
               <input
+                id="enroll-name-input"
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
@@ -293,44 +331,49 @@ export function EmployeeForm({ currentUser, onRefreshMetrics, onSelectEmployee }
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Department</label>
-                <select
+                <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Department / Job Category</label>
+                <input
+                  type="text"
+                  list="department-suggestions"
                   value={department}
                   onChange={(e) => setDepartment(e.target.value)}
                   className="w-full bg-[#1c1c1e] border border-gray-800 rounded-lg text-xs p-2.5 text-gray-200"
-                >
-                  <option value="Casting">Casting Dept</option>
-                  <option value="Polishing">Polishing Dept</option>
-                  <option value="Setting">Diamond Setting</option>
-                  <option value="Engraving">Hand Engraving</option>
-                  <option value="QC">Quality Inspection</option>
-                </select>
+                  placeholder="e.g. Casting, HR, Polishing, Driver"
+                  required
+                />
+                <datalist id="department-suggestions">
+                  <option value="HR / Administration" />
+                  <option value="Logistics / Driver" />
+                  <option value="Reception / Front Desk" />
+                  <option value="CAD Designing" />
+                  <option value="Casting" />
+                  <option value="Polishing" />
+                  <option value="Diamond Setting" />
+                  <option value="Hand Engraving" />
+                  <option value="Quality Inspection" />
+                  <option value="Security Detail" />
+                </datalist>
               </div>
 
               <div>
-                <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Skill Tier</label>
-                <select
-                  value={skillLevel}
-                  onChange={(e: any) => setSkillLevel(e.target.value)}
+                <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Job Title / Specialty Focus</label>
+                <input
+                  type="text"
+                  list="designation-suggestions"
+                  value={specialization}
+                  onChange={(e) => setSpecialization(e.target.value)}
                   className="w-full bg-[#1c1c1e] border border-gray-800 rounded-lg text-xs p-2.5 text-gray-200"
-                >
-                  <option value="Beginner">Beginner</option>
-                  <option value="Intermediate">Intermediate</option>
-                  <option value="Expert">Expert</option>
-                  <option value="Master">Master</option>
-                </select>
+                  placeholder="e.g. CAD Designer, Driver, Goldsmith"
+                />
+                <datalist id="designation-suggestions">
+                  <option value="CAD Designer" />
+                  <option value="Goldsmith Artisan" />
+                  <option value="HR Recruiter" />
+                  <option value="Front Desk Associate" />
+                  <option value="Logistics Driver" />
+                  <option value="Assayer Officer" />
+                </datalist>
               </div>
-            </div>
-
-            <div>
-              <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Specialization Focus</label>
-              <input
-                type="text"
-                value={specialization}
-                onChange={(e) => setSpecialization(e.target.value)}
-                className="w-full bg-[#1c1c1e] border border-gray-800 rounded-lg text-xs p-2.5 text-gray-200"
-                placeholder="e.g. Solitaire Prong Grinding"
-              />
             </div>
 
             <div className="space-y-2 p-3.5 bg-[#18181b]/55 border border-gray-800/80 rounded-xl">
@@ -462,7 +505,7 @@ export function EmployeeForm({ currentUser, onRefreshMetrics, onSelectEmployee }
                             return <span className="text-[8px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded border border-green-950 bg-[#0f241a] text-green-400">Free ✨</span>;
                           })()}
                         </div>
-                        <p className="text-xs text-gray-400">Department: <b className="text-gray-200">{emp.department || 'All'}</b> • Skill: <b className="text-[#f3e5ab]">{emp.skillLevel || 'Expert'}</b></p>
+                        <p className="text-xs text-gray-400">Department: <b className="text-gray-200">{emp.department || 'General'}</b> • Specialty: <b className="text-[#f3e5ab]">{emp.specialization || 'General Staff'}</b></p>
                         <div className="flex gap-3 text-[10px] text-gray-500 mt-1">
                           <span className="flex items-center gap-1"><Mail className="w-3 h-3 text-gray-600" /> {emp.email}</span>
                           {emp.phone && <span className="flex items-center gap-0.5"><Phone className="w-3 h-3 text-gray-600" /> {emp.phone}</span>}
@@ -516,6 +559,19 @@ export function EmployeeForm({ currentUser, onRefreshMetrics, onSelectEmployee }
                               Enable
                             </button>
                           )
+                        )}
+
+                        {emp.id !== currentUser.id && (currentUser.role === 'SUPER_ADMIN' || (currentUser.role === 'ADMIN' && emp.role !== 'SUPER_ADMIN' && emp.role !== 'ADMIN')) && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setConfirmDeleteUser(emp);
+                            }}
+                            className="p-1 px-2.5 bg-red-950/30 hover:bg-red-650 text-red-300 hover:text-white border border-red-900/40 hover:border-transparent rounded text-[10px] font-semibold flex items-center gap-1 shrink-0"
+                            title="Officially remove from roster (resignation)"
+                          >
+                            <UserX className="w-3 h-3 text-red-400" /> Remove
+                          </button>
                         )}
                       </div>
                     </div>
@@ -617,7 +673,7 @@ export function EmployeeForm({ currentUser, onRefreshMetrics, onSelectEmployee }
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-[10px] text-gray-400 uppercase mb-1">Department</label>
+                  <label className="block text-[10px] text-gray-400 uppercase mb-1">Department / Job Category</label>
                   <input
                     type="text"
                     value={editingEmp.department || ''}
@@ -626,7 +682,7 @@ export function EmployeeForm({ currentUser, onRefreshMetrics, onSelectEmployee }
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] text-gray-400 uppercase mb-1">Specialization Focus</label>
+                  <label className="block text-[10px] text-gray-400 uppercase mb-1">Job Title / Specialty Focus</label>
                   <input
                     type="text"
                     value={editingEmp.specialization || ''}
@@ -672,6 +728,55 @@ export function EmployeeForm({ currentUser, onRefreshMetrics, onSelectEmployee }
                 className="px-4 py-2 bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black font-semibold text-xs rounded-xl hover:brightness-110"
               >
                 Save Profile
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Roster Removal / Resignation Confirmation Modal Popup */}
+      {confirmDeleteUser && (
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex justify-center items-center p-4">
+          <div className="bg-[#121214] border border-red-900/60 rounded-2xl w-full max-w-md p-6 overflow-hidden shadow-2xl space-y-4">
+            <div className="flex items-center gap-2.5 text-red-400 border-b border-gray-900 pb-3">
+              <UserX className="w-5 h-5 text-red-500 animate-pulse" />
+              <h3 className="text-sm font-bold font-serif uppercase tracking-wider">Confirm Staff Offboarding</h3>
+            </div>
+
+            <p className="text-xs text-gray-300 leading-relaxed">
+              You are about to officially remove <b className="text-[#f3e5ab]">{confirmDeleteUser.fullName}</b> (<code className="text-[10px] text-gray-400">{confirmDeleteUser.id}</code>) from the active jeweler craft personnel ledger.
+            </p>
+
+            <div className="p-3 bg-red-950/10 border border-red-950/40 rounded-xl space-y-1.5 text-left">
+              <div className="text-[10px] text-[#eedba5] uppercase font-bold">Resignation & Records Offboarding Alert</div>
+              <p className="text-[11px] text-gray-400 leading-snug">
+                This action will delete their profile, record, and credential tokens. Ensure outstanding tasks are successfully re-assigned beforehand.
+              </p>
+            </div>
+
+            {deleteError && (
+              <div className="p-3 bg-rose-950/40 border border-rose-500/30 text-rose-200 text-xs rounded-xl text-left">
+                ✕ {deleteError}
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-gray-900/70">
+              <button
+                onClick={() => {
+                  setConfirmDeleteUser(null);
+                  setDeleteError('');
+                }}
+                disabled={isDeleting}
+                className="px-4 py-2.5 bg-gray-900 hover:bg-gray-800 text-gray-400 rounded-xl text-xs font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={executeDeleteEmployee}
+                disabled={isDeleting}
+                className="px-4 py-2.5 bg-gradient-to-r from-red-800 to-rose-700 text-white font-semibold text-xs rounded-xl hover:brightness-110 flex items-center gap-1.5 disabled:opacity-50"
+              >
+                {isDeleting ? 'Offboarding...' : 'Confirm Offboarding✓'}
               </button>
             </div>
           </div>

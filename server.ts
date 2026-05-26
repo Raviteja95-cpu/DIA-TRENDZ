@@ -676,6 +676,41 @@ app.post('/api/employees/update', (req, res) => {
   res.json({ success: true, employee: target });
 });
 
+app.post('/api/employees/delete', (req, res) => {
+  const { id, userId, userName, userRole } = req.body;
+
+  if (userRole !== 'SUPER_ADMIN' && userRole !== 'ADMIN') {
+    return res.status(403).json({ message: 'Only Administrators or Super Administrators can remove employees.' });
+  }
+
+  const db = loadData();
+  const userIdx = db.users.findIndex((u: any) => u.id === id);
+
+  if (userIdx === -1) {
+    return res.status(404).json({ message: 'Employee not found.' });
+  }
+
+  const target = db.users[userIdx];
+
+  // Prevent self-deletion
+  if (target.email.toLowerCase() === req.body.currentUserEmail?.toLowerCase() || target.id === userId) {
+    return res.status(400).json({ message: 'You cannot delete your own profile.' });
+  }
+
+  // Prevent standard Admin from deleting a Super Admin or other Admin
+  if (userRole === 'ADMIN' && (target.role === 'SUPER_ADMIN' || target.role === 'ADMIN')) {
+    return res.status(403).json({ message: 'As an Admin, you do not have privileges to delete other Admin or Super Admin profiles.' });
+  }
+
+  // Remove form array
+  db.users.splice(userIdx, 1);
+  saveData(db);
+
+  addAuditLog(userId, userName, userRole, 'Remove Employee', `Offboarded employee/staff member ${target.fullName} (${target.id}) due to resignation or transfer`);
+
+  res.json({ success: true, message: `Successfully removed ${target.fullName} from core staff.` });
+});
+
 // Tasks Production Module API
 app.get('/api/tasks', (req, res) => {
   const db = loadData();

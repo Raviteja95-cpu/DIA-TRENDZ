@@ -148,6 +148,7 @@ export function TaskForm({ currentUser, onRefreshTasks }: TaskFormProps) {
           <div>
             <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Customer / Boutique Reference</label>
             <input
+              id="task-customer-input"
               type="text"
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}

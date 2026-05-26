@@ -33,7 +33,14 @@ import {
   FileText,
   Menu,
   MoreVertical,
-  Package
+  Package,
+  UserPlus,
+  UserX,
+  PlusCircle,
+  Database,
+  TrendingUp,
+  Sparkles,
+  Command
 } from 'lucide-react';
 import { AuthPage } from './components/AuthPage';
 import { EmployeeForm } from './components/EmployeeForm';
@@ -756,6 +763,185 @@ export default function App() {
     );
   }) : [];
 
+  const availableShortcuts = [
+    {
+      id: "sh-enroll-emp",
+      title: "Enroll / Create New Employee",
+      description: "Register a new jeweler artisan, QC officer, or system admin",
+      keywords: ["create", "add", "new", "employee", "enroll", "staff", "artisan", "specialist", "hire"],
+      roles: ["SUPER_ADMIN", "ADMIN"],
+      icon: "UserPlus",
+      onExecute: () => {
+        setActiveTab('personnel');
+        setShowSearchResults(false);
+        setSearchQuery('');
+        setTimeout(() => {
+          const el = document.getElementById('enroll-name-input');
+          if (el) {
+            el.focus();
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 200);
+      }
+    },
+    {
+      id: "sh-remove-emp",
+      title: "Remove / Offboard Employee",
+      description: "Delete an employee file from direct roster lists (resignation)",
+      keywords: ["remove", "delete", "offboard", "resign", "unenroll", "employee", "staff"],
+      roles: ["SUPER_ADMIN", "ADMIN"],
+      icon: "UserX",
+      onExecute: () => {
+        setActiveTab('personnel');
+        setShowSearchResults(false);
+        setSearchQuery('');
+        setTimeout(() => {
+          const el = document.getElementById('crew-administration-module');
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 200);
+      }
+    },
+    {
+      id: "sh-dispatch-task",
+      title: "Dispatch / Create New Job Card",
+      description: "Provision a new custom casting/stone-setting workshop card",
+      keywords: ["create", "add", "new", "job", "task", "card", "dispatch", "bag", "order", "casting", "jewelry"],
+      roles: ["SUPER_ADMIN", "ADMIN", "QC"],
+      icon: "PlusCircle",
+      onExecute: () => {
+        setActiveTab('tasks');
+        setShowSearchResults(false);
+        setSearchQuery('');
+        setTimeout(() => {
+          const el = document.getElementById('task-customer-input');
+          if (el) {
+            el.focus();
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 200);
+      }
+    },
+    {
+      id: "sh-reassign-task",
+      title: "Reassign Task / Shift Goldsmith",
+      description: "Transfer active job sheets to an alternate bench manufacturer",
+      keywords: ["reassign", "assign", "change", "shift", "artisan", "smith", "task", "job"],
+      roles: ["SUPER_ADMIN", "ADMIN", "QC"],
+      icon: "Shuffle",
+      onExecute: () => {
+        setActiveTab('tracker');
+        setShowSearchResults(false);
+        setSearchQuery('');
+      }
+    },
+    {
+      id: "sh-analytics-profits",
+      title: "View Gold Yields & Material Analytics",
+      description: "Track weight shrinkages, order completion rates, and profit vectors",
+      keywords: ["analytics", "charts", "yield", "losses", "profits", "shrinkage", "metrics", "gold", "fine"],
+      roles: ["SUPER_ADMIN", "ADMIN", "QC"],
+      icon: "TrendingUp",
+      onExecute: () => {
+        setActiveTab('analytics');
+        setShowSearchResults(false);
+        setSearchQuery('');
+      }
+    },
+    {
+      id: "sh-leave-submit",
+      title: "Request Leave / Submit Work Absence",
+      description: "File vacation days, medical certificates, or absence timings",
+      keywords: ["leave", "leave balance", "vacation", "holiday", "off", "absence", "request", "days", "calendar"],
+      roles: ["SUPER_ADMIN", "ADMIN", "QC", "EMPLOYEE"],
+      icon: "Calendar",
+      onExecute: () => {
+        setActiveTab('leave');
+        setShowSearchResults(false);
+        setSearchQuery('');
+      }
+    },
+    {
+      id: "sh-whitelist-settings",
+      title: "Configure Domain Whitelists",
+      description: "Moderate secure domain names authorized to self-register",
+      keywords: ["whitelist", "domain", "security", "allowed", "restrict", "signup", "email", "address", "settings"],
+      roles: ["SUPER_ADMIN", "ADMIN"],
+      icon: "ShieldCheck",
+      onExecute: () => {
+        setActiveTab('settings');
+        setShowSearchResults(false);
+        setSearchQuery('');
+      }
+    },
+    {
+      id: "sh-audit-history",
+      title: "Inspect System Logs & Audit Trails",
+      description: "Examine core action history, server logins, and offboarding logs",
+      keywords: ["logs", "audit", "history", "actions", "events", "diagnostics", "trace", "security"],
+      roles: ["SUPER_ADMIN", "ADMIN"],
+      icon: "History",
+      onExecute: () => {
+        setActiveTab('history');
+        setShowSearchResults(false);
+        setSearchQuery('');
+      }
+    },
+    {
+      id: "sh-diagnostics",
+      title: "Run Automatic QA & System Diagnostics",
+      description: "Initiate backend latency simulation tests and database checks",
+      keywords: ["diagnostics", "tests", "run", "simulation", "latency", "health", "qa", "qa suite", "automatic", "settings"],
+      roles: ["SUPER_ADMIN", "ADMIN"],
+      icon: "Activity",
+      onExecute: () => {
+        setActiveTab('testing');
+        setShowSearchResults(false);
+        setSearchQuery('');
+      }
+    },
+    {
+      id: "sh-db-backup",
+      title: "Database Backup & State Recovery",
+      description: "Download or trigger server-backed JSON data storage file saves",
+      keywords: ["backup", "restore", "database", "save", "json", "recovery", "settings"],
+      roles: ["SUPER_ADMIN", "ADMIN"],
+      icon: "Database",
+      onExecute: () => {
+        setActiveTab('settings');
+        setShowSearchResults(false);
+        setSearchQuery('');
+      }
+    }
+  ];
+
+  const filteredShortcuts = searchQuery && currentUser ? availableShortcuts.filter(item => {
+    if (!item.roles.includes(currentUser.role)) return false;
+    const q = searchQuery.toLowerCase();
+    return (
+      item.title.toLowerCase().includes(q) ||
+      item.description.toLowerCase().includes(q) ||
+      item.keywords.some(kw => kw.toLowerCase().includes(q))
+    );
+  }) : [];
+
+  const renderShortcutIcon = (iconName: string) => {
+    switch (iconName) {
+      case 'UserPlus': return <UserPlus className="w-4 h-4 text-emerald-400" />;
+      case 'UserX': return <UserX className="w-4 h-4 text-red-500" />;
+      case 'PlusCircle': return <PlusCircle className="w-4 h-4 text-amber-500" />;
+      case 'Shuffle': return <Shuffle className="w-4 h-4 text-blue-400" />;
+      case 'TrendingUp': return <TrendingUp className="w-4 h-4 text-purple-400" />;
+      case 'Calendar': return <Calendar className="w-4 h-4 text-[#d4af37]" />;
+      case 'ShieldCheck': return <ShieldCheck className="w-4 h-4 text-indigo-400" />;
+      case 'History': return <History className="w-4 h-4 text-pink-400" />;
+      case 'Activity': return <Activity className="w-4 h-4 text-[#f3e5ab]" />;
+      case 'Database': return <Database className="w-4 h-4 text-teal-400" />;
+      default: return <Command className="w-4 h-4 text-gray-400" />;
+    }
+  };
+
   const handleHomeClick = () => {
     if (currentUser) {
       if (currentUser.role === 'EMPLOYEE') {
@@ -835,16 +1021,49 @@ export default function App() {
                   UNIFIED SYSTEMS REPORT MATCHES
                 </span>
                 <span className="text-[9px] text-gray-500 font-mono">
-                  Found: {filteredSearchTasks.length + filteredSearchEmployees.length}
+                  Found: {filteredSearchTasks.length + filteredSearchEmployees.length + filteredShortcuts.length}
                 </span>
               </div>
 
-              {filteredSearchTasks.length === 0 && filteredSearchEmployees.length === 0 ? (
+              {filteredSearchTasks.length === 0 && filteredSearchEmployees.length === 0 && filteredShortcuts.length === 0 ? (
                 <div className="py-6 text-center text-xs text-gray-500">
                   No records matching &ldquo;<span className="text-gray-300 font-semibold">{searchQuery}</span>&rdquo; found.
                 </div>
               ) : (
                 <div className="space-y-4">
+                  {/* Dynamic Action Commands matches */}
+                  {filteredShortcuts.length > 0 && (
+                    <div className="space-y-1.5">
+                      <div className="text-[9px] uppercase font-bold tracking-widest text-[#d4af37] px-1 flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-[#d4af37]" /> ⚡ Active Systems Command Shortcuts ({filteredShortcuts.length})
+                      </div>
+                      <div className="space-y-1">
+                        {filteredShortcuts.map(item => (
+                          <div
+                            key={item.id}
+                            onClick={item.onExecute}
+                            className="p-2.5 rounded-xl bg-gray-950/70 hover:bg-[#1a1c2e] border border-gray-900/40 hover:border-[#d4af37]/30 cursor-pointer transition text-left flex items-start gap-3 group"
+                          >
+                            <div className="p-2 bg-gray-900 border border-gray-800 rounded-xl group-hover:bg-[#131526] group-hover:border-[#d4af37]/45 transition duration-150 shrink-0 mt-0.5">
+                              {renderShortcutIcon(item.icon)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-xs font-bold text-white group-hover:text-[#f3e5ab] transition-colors leading-tight">
+                                {item.title}
+                              </div>
+                              <div className="text-[10px] text-gray-400 mt-0.5 group-hover:text-gray-300 truncate">
+                                {item.description}
+                              </div>
+                            </div>
+                            <div className="self-center bg-[#1c1d24] group-hover:bg-[#d4af37]/10 text-gray-500 group-hover:text-[#d4af37] border border-gray-800 rounded-lg text-[9px] px-1.5 py-0.5 uppercase font-serif tracking-wider shrink-0 transition-colors">
+                              Run ➔
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Task matches */}
                   {filteredSearchTasks.length > 0 && (
                     <div className="space-y-1.5">
@@ -916,7 +1135,7 @@ export default function App() {
                               <span className="px-1.5 py-0.5 bg-gray-900 border border-gray-800 text-gray-300 rounded text-[8px] font-bold block uppercase tracking-wider">
                                 {emp.role}
                               </span>
-                              <span className="text-[8px] text-[#f3e5ab] block mt-0.5 uppercase tracking-wider font-semibold">{emp.skillLevel || 'Expert'}</span>
+                              <span className="text-[8px] text-[#f3e5ab] block mt-0.5 uppercase tracking-wider font-semibold">{emp.specialization || 'General Staff'}</span>
                             </div>
                           </div>
                         ))}
@@ -2510,8 +2729,8 @@ export default function App() {
                     <span className="text-white font-semibold">{inspectedEmployee.specialization || 'Not specified'}</span>
                   </div>
                   <div>
-                    <span className="text-gray-500 block text-[9px] uppercase font-bold">Skill Category</span>
-                    <span className="text-white font-semibold">{inspectedEmployee.skillLevel || 'Expert'}</span>
+                    <span className="text-gray-500 block text-[9px] uppercase font-bold">Staff Role Type</span>
+                    <span className="text-emerald-400 font-bold">{inspectedEmployee.role}</span>
                   </div>
                   <div>
                     <span className="text-gray-500 block text-[9px] uppercase font-bold">Joining File Date</span>
