@@ -40,7 +40,8 @@ import {
   Database,
   TrendingUp,
   Sparkles,
-  Command
+  Command,
+  Video
 } from 'lucide-react';
 import { AuthPage } from './components/AuthPage';
 import { EmployeeForm } from './components/EmployeeForm';
@@ -54,6 +55,8 @@ import { WorkReports } from './components/WorkReports';
 import { ModernAnalytics } from './components/ModernAnalytics';
 import { JobBagTracker } from './components/JobBagTracker';
 import { TestingCenter } from './components/TestingCenter';
+import VideoTrainingHub from './components/VideoTrainingHub';
+import SimpleJobCard8Steps from './components/SimpleJobCard8Steps';
 import { JobCard, SystemMetrics } from './types';
 
 const safeResponseParse = async (res: Response) => {
@@ -72,7 +75,7 @@ const safeResponseParse = async (res: Response) => {
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'personnel' | 'tasks' | 'leave' | 'qc' | 'analytics' | 'history' | 'settings' | 'reports' | 'tracker' | 'testing'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'personnel' | 'tasks' | 'leave' | 'qc' | 'analytics' | 'history' | 'settings' | 'reports' | 'tracker' | 'testing' | 'training'>('dashboard');
 
   // Metrics database stats
   const [metrics, setMetrics] = useState<SystemMetrics>({
@@ -1289,13 +1292,13 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => { setActiveTab('dashboard'); setShowMobileMenu(false); }}
-                className={`p-3 rounded-xl text-left text-[11px] font-bold uppercase tracking-wider transition duration-150 flex items-center gap-2 border ${
+                className={`p-3 rounded-xl text-left text-[11px] font-bold uppercase tracking-wider transition-all duration-150 flex items-center gap-2 border ${
                   activeTab === 'dashboard'
                     ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black border-[#d4af37] shadow-md shadow-[#d4af37]/10'
                     : 'bg-gray-950 border-gray-900 text-gray-400 hover:text-white hover:bg-white/[0.03]'
                 }`}
               >
-                <LayoutDashboard className="w-3.5 h-3.5 shrink-0" /> Dashboard
+                <LayoutDashboard className="w-3.5 h-3.5 shrink-0" /> Workshop Overview
               </button>
             )}
 
@@ -1303,13 +1306,13 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => { setActiveTab('personnel'); setShowMobileMenu(false); }}
-                className={`p-3 rounded-xl text-left text-[11px] font-bold uppercase tracking-wider transition duration-150 flex items-center gap-2 border ${
+                className={`p-3 rounded-xl text-left text-[11px] font-bold uppercase tracking-wider transition-all duration-150 flex items-center gap-2 border ${
                   activeTab === 'personnel'
                     ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black border-[#d4af37] shadow-md shadow-[#d4af37]/10'
                     : 'bg-gray-950 border-gray-900 text-gray-400 hover:text-white hover:bg-white/[0.03]'
                 }`}
               >
-                <Users className="w-3.5 h-3.5 shrink-0" /> Personnel
+                <Users className="w-3.5 h-3.5 shrink-0" /> Brand Artisans
               </button>
             )}
 
@@ -1317,13 +1320,13 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => { setActiveTab('tasks'); setShowMobileMenu(false); }}
-                className={`p-3 rounded-xl text-left text-[11px] font-bold uppercase tracking-wider transition duration-150 flex items-center gap-2 border ${
+                className={`p-3 rounded-xl text-left text-[11px] font-bold uppercase tracking-wider transition-all duration-150 flex items-center gap-2 border ${
                   activeTab === 'tasks'
                     ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black border-[#d4af37] shadow-md shadow-[#d4af37]/10'
                     : 'bg-gray-950 border-gray-900 text-gray-400 hover:text-white hover:bg-white/[0.03]'
                 }`}
               >
-                <Briefcase className="w-3.5 h-3.5 shrink-0" /> Tasks
+                <Briefcase className="w-3.5 h-3.5 shrink-0" /> Active Jobs
               </button>
             )}
 
@@ -1331,39 +1334,39 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => { setActiveTab('tasks'); setShowMobileMenu(false); }}
-                className={`p-3 rounded-xl text-left text-[11px] font-bold uppercase tracking-wider transition duration-150 flex items-center gap-2 border ${
+                className={`p-3 rounded-xl text-left text-[11px] font-bold uppercase tracking-wider transition-all duration-150 flex items-center gap-2 border ${
                   activeTab === 'tasks'
                     ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black border-[#d4af37] shadow-md shadow-[#d4af37]/10'
                     : 'bg-gray-950 border-gray-900 text-gray-400 hover:text-white hover:bg-white/[0.03]'
                 }`}
               >
-                <Briefcase className="w-3.5 h-3.5 shrink-0" /> Tasks
+                <Briefcase className="w-3.5 h-3.5 shrink-0" /> Active Jobs
               </button>
             )}
 
             <button
               type="button"
               onClick={() => { setActiveTab('leave'); setShowMobileMenu(false); }}
-              className={`p-3 rounded-xl text-left text-[11px] font-bold uppercase tracking-wider transition duration-150 flex items-center gap-2 border ${
+              className={`p-3 rounded-xl text-left text-[11px] font-bold uppercase tracking-wider transition-all duration-150 flex items-center gap-2 border ${
                 activeTab === 'leave'
                   ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black border-[#d4af37] shadow-md shadow-[#d4af37]/10'
                   : 'bg-gray-950 border-gray-900 text-gray-400 hover:text-white hover:bg-white/[0.03]'
               }`}
             >
-              <Calendar className="w-3.5 h-3.5 shrink-0" /> Leave
+              <Calendar className="w-3.5 h-3.5 shrink-0" /> Leave Calendar
             </button>
 
             {(currentUser.role === 'SUPER_ADMIN' || currentUser.role === 'ADMIN' || currentUser.role === 'QC') && (
               <button
                 type="button"
                 onClick={() => { setActiveTab('qc'); setShowMobileMenu(false); }}
-                className={`p-3 rounded-xl text-left text-[11px] font-bold uppercase tracking-wider transition duration-150 flex items-center gap-2 border ${
+                className={`p-3 rounded-xl text-left text-[11px] font-bold uppercase tracking-wider transition-all duration-150 flex items-center gap-2 border ${
                   activeTab === 'qc'
                     ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black border-[#d4af37] shadow-md shadow-[#d4af37]/10'
                     : 'bg-gray-950 border-gray-900 text-gray-400 hover:text-white hover:bg-white/[0.03]'
                 }`}
               >
-                <CheckCircle className="w-3.5 h-3.5 shrink-0" /> QC
+                <CheckCircle className="w-3.5 h-3.5 shrink-0" /> Quality checking
               </button>
             )}
 
@@ -1371,13 +1374,13 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => { setActiveTab('analytics'); setShowMobileMenu(false); }}
-                className={`p-3 rounded-xl text-left text-[11px] font-bold uppercase tracking-wider transition duration-150 flex items-center gap-2 border ${
+                className={`p-3 rounded-xl text-left text-[11px] font-bold uppercase tracking-wider transition-all duration-150 flex items-center gap-2 border ${
                   activeTab === 'analytics'
                     ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black border-[#d4af37] shadow-md shadow-[#d4af37]/10'
                     : 'bg-gray-950 border-gray-900 text-gray-400 hover:text-white hover:bg-white/[0.03]'
                 }`}
               >
-                <Activity className="w-3.5 h-3.5 shrink-0" /> Analytics
+                <Activity className="w-3.5 h-3.5 shrink-0" /> Efficiency charts
               </button>
             )}
 
@@ -1385,13 +1388,13 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => { setActiveTab('history'); setShowMobileMenu(false); }}
-                className={`p-3 rounded-xl text-left text-[11px] font-bold uppercase tracking-wider transition duration-150 flex items-center gap-2 border ${
+                className={`p-3 rounded-xl text-left text-[11px] font-bold uppercase tracking-wider transition-all duration-150 flex items-center gap-2 border ${
                   activeTab === 'history'
                     ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black border-[#d4af37] shadow-md shadow-[#d4af37]/10'
                     : 'bg-gray-950 border-gray-900 text-gray-400 hover:text-white hover:bg-white/[0.03]'
                 }`}
               >
-                <History className="w-3.5 h-3.5 shrink-0" /> History
+                <History className="w-3.5 h-3.5 shrink-0" /> Audit logs
               </button>
             )}
 
@@ -1399,39 +1402,51 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => { setActiveTab('reports'); setShowMobileMenu(false); }}
-                className={`p-3 rounded-xl text-left text-[11px] font-bold uppercase tracking-wider transition duration-150 flex items-center gap-2 border ${
+                className={`p-3 rounded-xl text-left text-[11px] font-bold uppercase tracking-wider transition-all duration-150 flex items-center gap-2 border ${
                   activeTab === 'reports'
                     ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black border-[#d4af37] shadow-md shadow-[#d4af37]/10'
                     : 'bg-gray-950 border-gray-900 text-gray-400 hover:text-white hover:bg-white/[0.03]'
                 }`}
               >
-                <FileText className="w-3.5 h-3.5 shrink-0" /> Reports
+                <FileText className="w-3.5 h-3.5 shrink-0" /> Handover Dossiers
               </button>
             )}
 
             <button
               type="button"
               onClick={() => { setActiveTab('tracker'); setShowMobileMenu(false); }}
-              className={`p-3 rounded-xl text-left text-[11px] font-bold uppercase tracking-wider transition duration-150 flex items-center gap-2 border ${
+              className={`p-3 rounded-xl text-left text-[11px] font-bold uppercase tracking-wider transition-all duration-150 flex items-center gap-2 border ${
                 activeTab === 'tracker'
                   ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black border-[#d4af37] shadow-md shadow-[#d4af37]/10'
                   : 'bg-gray-950 border-gray-900 text-gray-400 hover:text-white hover:bg-white/[0.03]'
               }`}
             >
-              <Package className="w-3.5 h-3.5 shrink-0" /> Tracker
+              <Package className="w-3.5 h-3.5 shrink-0" /> Job Tracker
+            </button>
+
+            <button
+              type="button"
+              onClick={() => { setActiveTab('training'); setShowMobileMenu(false); }}
+              className={`p-3 rounded-xl text-left text-[11px] font-bold uppercase tracking-wider transition-all duration-150 flex items-center gap-2 border ${
+                activeTab === 'training'
+                  ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black border-[#d4af37] shadow-md shadow-[#d4af37]/10'
+                  : 'bg-[#d4af37]/5 border-[#d4af37]/20 text-[#f3e5ab] hover:text-white'
+              }`}
+            >
+              <Video className="w-3.5 h-3.5 shrink-0 text-[#d4af37]" /> Video Tutorial
             </button>
 
             {currentUser.role === 'SUPER_ADMIN' && (
               <button
                 type="button"
                 onClick={() => { setActiveTab('settings'); setShowMobileMenu(false); }}
-                className={`p-3 rounded-xl text-left text-[11px] font-bold uppercase tracking-wider transition duration-150 flex items-center gap-2 border ${
+                className={`p-3 rounded-xl text-left text-[11px] font-bold uppercase tracking-wider transition-all duration-150 flex items-center gap-2 border ${
                   activeTab === 'settings'
                     ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black border-[#d4af37] shadow-[#d4af37]/10 shadow'
                     : 'bg-gray-950 border-gray-900 text-gray-400 hover:text-white hover:bg-white/[0.03]'
                 }`}
               >
-                <Settings className="w-3.5 h-3.5 shrink-0" /> Settings
+                <Settings className="w-3.5 h-3.5 shrink-0" /> Server Settings
               </button>
             )}
 
@@ -1439,13 +1454,13 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => { setActiveTab('testing'); setShowMobileMenu(false); }}
-                className={`p-3 rounded-xl text-left text-[11px] font-bold uppercase tracking-wider transition duration-150 flex items-center gap-2 border ${
+                className={`p-3 rounded-xl text-left text-[11px] font-bold uppercase tracking-wider transition-all duration-150 flex items-center gap-2 border ${
                   activeTab === 'testing'
                     ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black border-[#d4af37] shadow-[#d4af37]/10 shadow'
                     : 'bg-gray-950 border-gray-900 text-gray-400 hover:text-white hover:bg-white/[0.03]'
                 }`}
               >
-                <ShieldCheck className="w-3.5 h-3.5 shrink-0" /> Testing
+                <ShieldCheck className="w-3.5 h-3.5 shrink-0" /> Automation Hub
               </button>
             )}
           </div>
@@ -1455,156 +1470,170 @@ export default function App() {
       {/* Main Workspace Frame container */}
       <div className="w-full max-w-full px-4 md:px-8 xl:px-12 pt-6 flex flex-col md:flex-row gap-6 print:block">
         {/* Real-time elegant Workspace sidebar navigators */}
-        <aside className="hidden md:flex md:w-64 max-w-full shrink-0 flex-col gap-1.5 p-2 bg-[#0b152d]/92 backdrop-blur-xl rounded-2xl border border-[#1f3460] justify-start print:hidden shadow-lg">
+        <aside className="hidden md:flex md:w-64 max-w-full shrink-0 flex-col gap-2 p-3 bg-[#0b152d]/92 backdrop-blur-xl rounded-2xl border border-[#1f3460] justify-start print:hidden shadow-lg">
+          <div className="text-[10px] uppercase font-bold text-[#f3e5ab]/60 tracking-widest text-left px-4 pt-1 pb-2 border-b border-[#1f3460]/40">
+            ✦ Studio Workspace ✦
+          </div>
           {currentUser.role !== 'EMPLOYEE' && currentUser.role !== 'QC' && (
             <button
               onClick={() => setActiveTab('dashboard')}
-              className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition flex items-center gap-2.5 ${
+              className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition-all duration-200 flex items-center gap-2.5 ${
                 activeTab === 'dashboard'
-                  ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.15)] animate-pulse-subtle'
+                  ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.2)] font-bold scale-[1.02]'
                   : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
               }`}
             >
-              <LayoutDashboard className="w-4 h-4 shrink-0 text-[#d4af37]" /> Dashboard
+              <LayoutDashboard className="w-4 h-4 shrink-0 text-[#d4af37]" /> Workshop Overview
             </button>
           )}
 
           {currentUser.role !== 'EMPLOYEE' && currentUser.role !== 'QC' && (
             <button
               onClick={() => setActiveTab('personnel')}
-              className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition flex items-center gap-2.5 ${
+              className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition-all duration-200 flex items-center gap-2.5 ${
                 activeTab === 'personnel'
-                  ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.15)]'
+                  ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.2)] font-bold scale-[1.02]'
                   : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
               }`}
             >
-              <Users className="w-4 h-4 shrink-0 text-[#d4af37]" /> Personnel
+              <Users className="w-4 h-4 shrink-0 text-[#d4af37]" /> Brand Artisans & Staff Roster
             </button>
           )}
 
           {currentUser.role !== 'EMPLOYEE' && currentUser.role !== 'QC' && (
             <button
               onClick={() => setActiveTab('tasks')}
-              className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition flex items-center gap-2.5 ${
+              className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition-all duration-200 flex items-center gap-2.5 ${
                 activeTab === 'tasks'
-                  ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.15)]'
+                  ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.2)] font-bold scale-[1.02]'
                   : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
               }`}
             >
-              <Briefcase className="w-4 h-4 shrink-0 text-[#d4af37]" /> Tasks
+              <Briefcase className="w-4 h-4 shrink-0 text-[#d4af37]" /> Active Metal & Gem Jobs
             </button>
           )}
 
           {currentUser.role === 'EMPLOYEE' && (
             <button
               onClick={() => setActiveTab('tasks')}
-              className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition flex items-center gap-2.5 ${
+              className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition-all duration-200 flex items-center gap-2.5 ${
                 activeTab === 'tasks'
-                  ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black'
+                  ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black font-bold scale-[1.02]'
                   : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
               }`}
             >
-              <Briefcase className="w-4 h-4 shrink-0 text-[#d4af37]" /> Tasks
+              <Briefcase className="w-4 h-4 shrink-0 text-[#d4af37]" /> Active Metal & Gem Jobs
             </button>
           )}
 
           <button
             onClick={() => setActiveTab('leave')}
-            className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition flex items-center gap-2.5 ${
+            className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition-all duration-200 flex items-center gap-2.5 ${
               activeTab === 'leave'
-                ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.15)]'
+                ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.2)] font-bold scale-[1.02]'
                 : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
             }`}
           >
-            <Calendar className="w-4 h-4 shrink-0 text-[#d4af37]" /> Leave
+            <Calendar className="w-4 h-4 shrink-0 text-[#d4af37]" /> Holiday & Leave Calendar
           </button>
 
           {(currentUser.role === 'SUPER_ADMIN' || currentUser.role === 'ADMIN' || currentUser.role === 'QC') && (
             <button
               onClick={() => setActiveTab('qc')}
-              className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition flex items-center gap-2.5 ${
+              className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition-all duration-200 flex items-center gap-2.5 ${
                 activeTab === 'qc'
-                  ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.15)]'
+                  ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.2)] font-bold scale-[1.02]'
                   : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
               }`}
             >
-              <CheckCircle className="w-4 h-4 shrink-0 text-[#d4af37]" /> QC ({metrics.qcPendingJobs})
+              <CheckCircle className="w-4 h-4 shrink-0 text-[#d4af37]" /> Quality Checking ({metrics.qcPendingJobs})
             </button>
           )}
 
           {currentUser.role !== 'EMPLOYEE' && (
             <button
               onClick={() => setActiveTab('analytics')}
-              className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition flex items-center gap-2.5 ${
+              className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition-all duration-200 flex items-center gap-2.5 ${
                 activeTab === 'analytics'
-                  ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.15)]'
+                  ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.2)] font-bold scale-[1.02]'
                   : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
               }`}
             >
-              <Activity className="w-4 h-4 shrink-0 text-[#d4af37]" /> Analytics
+              <Activity className="w-4 h-4 shrink-0 text-[#d4af37]" /> Gold Yield & Efficiency Charts
             </button>
           )}
 
           {currentUser.role !== 'EMPLOYEE' && (
             <button
               onClick={() => setActiveTab('history')}
-              className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition flex items-center gap-2.5 ${
+              className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition-all duration-200 flex items-center gap-2.5 ${
                 activeTab === 'history'
-                  ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.15)]'
+                  ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.2)] font-bold scale-[1.02]'
                   : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
               }`}
             >
-              <History className="w-4 h-4 shrink-0 text-[#d4af37]" /> History
+              <History className="w-4 h-4 shrink-0 text-[#d4af37]" /> Live Security Audit Logs
             </button>
           )}
 
           {currentUser.role !== 'EMPLOYEE' && (
             <button
                onClick={() => setActiveTab('reports')}
-               className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition flex items-center gap-2.5 ${
+               className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition-all duration-200 flex items-center gap-2.5 ${
                  activeTab === 'reports'
-                   ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.15)]'
+                   ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.2)] font-bold scale-[1.02]'
                    : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
                }`}
             >
-              <FileText className="w-4 h-4 shrink-0 text-[#d4af37]" /> Reports
+              <FileText className="w-4 h-4 shrink-0 text-[#d4af37]" /> Workshop Handover Dossiers
             </button>
           )}
 
           <button
             onClick={() => setActiveTab('tracker')}
-            className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition flex items-center gap-2.5 ${
+            className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition-all duration-200 flex items-center gap-2.5 ${
               activeTab === 'tracker'
-                ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.15)]'
+                ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.2)] font-bold scale-[1.02]'
                 : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
             }`}
           >
-            <Package className="w-4 h-4 shrink-0 text-[#d4af37] font-bold" /> Tracker
+            <Package className="w-4 h-4 shrink-0 text-[#d4af37] font-bold" /> Real-time Handover Tracker
+          </button>
+
+          <button
+            onClick={() => setActiveTab('training')}
+            className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition-all duration-200 flex items-center gap-2.5 ${
+              activeTab === 'training'
+                ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.2)] font-bold scale-[1.02]'
+                : 'text-[#f3e5ab]/90 hover:text-white hover:bg-white/[0.04] border border-[#d4af37]/20 bg-[#d4af37]/5'
+            }`}
+          >
+            <Video className="w-4 h-4 shrink-0 text-[#d4af37]" /> Video Tutorial & Quickstart
           </button>
 
           {currentUser.role === 'SUPER_ADMIN' && (
             <button
               onClick={() => setActiveTab('settings')}
-              className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition flex items-center gap-2.5 ${
+              className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition-all duration-200 flex items-center gap-2.5 ${
                 activeTab === 'settings'
-                  ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.15)]'
+                  ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.2)] font-bold scale-[1.02]'
                   : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
               }`}
             >
-              <Settings className="w-4 h-4 shrink-0 text-[#d4af37]" /> Settings
+              <Settings className="w-4 h-4 shrink-0 text-[#d4af37]" /> Server Hardware Settings
             </button>
           )}
 
           {currentUser.role === 'SUPER_ADMIN' && (
             <button
               onClick={() => setActiveTab('testing')}
-              className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition flex items-center gap-2.5 ${
+              className={`flex-1 md:flex-none p-3 px-4 rounded-xl text-left text-xs font-semibold transition-all duration-200 flex items-center gap-2.5 ${
                 activeTab === 'testing'
-                  ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.15)]'
+                  ? 'bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black shadow-[0_4px_15px_rgba(212,175,55,0.2)] font-bold scale-[1.02]'
                   : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
               }`}
             >
-              <ShieldCheck className="w-4 h-4 shrink-0 text-[#d4af37]" /> Testing
+              <ShieldCheck className="w-4 h-4 shrink-0 text-[#d4af37]" /> QA Automation Hub
             </button>
           )}
         </aside>
@@ -1639,6 +1668,11 @@ export default function App() {
             }
           }}
         >
+          {/* Universal 8-Step Jewelry Design Workflow Quick-Reference Card */}
+          <div className="mb-6">
+            <SimpleJobCard8Steps />
+          </div>
+
           {/* Dashboard Summary Widgets */}
           {activeTab === 'dashboard' && currentUser.role !== 'EMPLOYEE' && currentUser.role !== 'QC' && (
             <div className="space-y-6">
@@ -2239,6 +2273,10 @@ export default function App() {
 
           {activeTab === 'testing' && currentUser.role === 'SUPER_ADMIN' && (
             <TestingCenter />
+          )}
+
+          {activeTab === 'training' && (
+            <VideoTrainingHub />
           )}
         </main>
       </div>

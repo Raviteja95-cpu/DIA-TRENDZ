@@ -225,19 +225,19 @@ export function EmployeeForm({ currentUser, onRefreshMetrics, onSelectEmployee }
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold font-serif text-white tracking-wide">
-            CRAFT PERSONNEL & SYSTEM ROSTER
+            ARTISANS & TEAM ROSTER
           </h2>
           <p className="text-xs text-gray-400">
-            Provision roles, monitor productivity ratios, and handle workforce configurations.
+            View active craft masters, manage holiday balances, and register new members instantly.
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Registration Panel */}
-        <div className="bg-[#121214]/95 border border-gray-800 rounded-2xl p-6 self-start space-y-4">
-          <span className="text-xs uppercase tracking-widest text-[#f3e5ab] font-bold block pb-3 border-b border-gray-800 mb-2">
-            Enroll Craft Specialist
+        <div className="motion-3d-card p-6 self-start space-y-4 border border-[#d4af37]/30">
+          <span className="text-sm font-serif text-[#f3e5ab] font-bold block pb-3 border-b border-gray-800/80 mb-2">
+            Add New Artisan or Staff
           </span>
 
           <form onSubmit={handleCreateEmployee} className="space-y-4 text-left">
@@ -254,25 +254,25 @@ export function EmployeeForm({ currentUser, onRefreshMetrics, onSelectEmployee }
             )}
 
             <div>
-              <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Full Name</label>
+              <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Artisan Full Name</label>
               <input
                 id="enroll-name-input"
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w-full bg-[#1c1c1e] border border-gray-800 rounded-lg text-xs p-2.5 text-gray-200"
+                className="w-full bg-[#060c1c] border border-gray-800 rounded-lg text-xs p-2.5 text-gray-200"
                 placeholder="Ahmed Bin Al-Maktoum"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Official Email</label>
+              <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Email Address</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-[#1c1c1e] border border-gray-800 rounded-lg text-xs p-2.5 text-gray-200"
+                className="w-full bg-[#060c1c] border border-gray-800 rounded-lg text-xs p-2.5 text-gray-200"
                 placeholder="ahmed@diatrendz.com"
                 required
               />
@@ -280,22 +280,22 @@ export function EmployeeForm({ currentUser, onRefreshMetrics, onSelectEmployee }
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Phone</label>
+                <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Phone Number</label>
                 <input
                   type="text"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full bg-[#1c1c1e] border border-gray-800 rounded-lg text-xs p-2.5 text-gray-200"
+                  className="w-full bg-[#060c1c] border border-gray-800 rounded-lg text-xs p-2.5 text-gray-200"
                   placeholder="+971 50..."
                 />
               </div>
               <div>
-                <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Passcode</label>
+                <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Passcode (Safe Password)</label>
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-[#1c1c1e] border border-gray-800 rounded-lg text-xs p-2.5 text-gray-300"
+                  className="w-full bg-[#060c1c] border border-gray-800 rounded-lg text-xs p-2.5 text-gray-300"
                   placeholder="Admin@123"
                   required
                 />
@@ -304,26 +304,26 @@ export function EmployeeForm({ currentUser, onRefreshMetrics, onSelectEmployee }
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-[10px] uppercase font-bold text-[#d4af37] mb-1">Staff Role</label>
+                <label className="block text-[10px] uppercase font-bold text-[#d4af37] mb-1">Team Role Privilege</label>
                 <select
                   value={role}
                   onChange={(e: any) => setRole(e.target.value)}
-                  className="w-full bg-[#1c1c1e] border border-gray-800 rounded-lg text-xs p-2.5 text-gray-200 font-bold"
+                  className="w-full bg-[#060c1c] border border-gray-800 rounded-lg text-xs p-2.5 text-gray-200 font-bold"
                 >
-                  <option value="EMPLOYEE">EMPLOYEE</option>
-                  <option value="QC">QC TEAM</option>
-                  {currentUser.role === 'SUPER_ADMIN' && <option value="ADMIN">TL (ADMIN)</option>}
-                  {currentUser.role === 'SUPER_ADMIN' && <option value="SUPER_ADMIN">SUPER_ADMIN</option>}
+                  <option value="EMPLOYEE">Standard Artisan (Employee)</option>
+                  <option value="QC">Quality Checker Team</option>
+                  {currentUser.role === 'SUPER_ADMIN' && <option value="ADMIN">Manager (Admin)</option>}
+                  {currentUser.role === 'SUPER_ADMIN' && <option value="SUPER_ADMIN">Owner (Super Admin)</option>}
                 </select>
               </div>
 
               <div>
-                <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Vacation Balance</label>
+                <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Annual Holiday Credits</label>
                 <input
                   type="number"
                   value={leaveBalance}
                   onChange={(e) => setLeaveBalance(Math.max(0, Number(e.target.value)))}
-                  className="w-full bg-[#1c1c1e] border border-gray-800 rounded-lg text-xs p-2.5 text-gray-200"
+                  className="w-full bg-[#060c1c] border border-gray-800 rounded-lg text-xs p-2.5 text-gray-200"
                   min={0}
                 />
               </div>
@@ -331,14 +331,14 @@ export function EmployeeForm({ currentUser, onRefreshMetrics, onSelectEmployee }
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Department / Job Category</label>
+                <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Department</label>
                 <input
                   type="text"
                   list="department-suggestions"
                   value={department}
                   onChange={(e) => setDepartment(e.target.value)}
-                  className="w-full bg-[#1c1c1e] border border-gray-800 rounded-lg text-xs p-2.5 text-gray-200"
-                  placeholder="e.g. Casting, HR, Polishing, Driver"
+                  className="w-full bg-[#060c1c] border border-gray-800 rounded-lg text-xs p-2.5 text-gray-200"
+                  placeholder="e.g. Casting, Polishing, Logistics"
                   required
                 />
                 <datalist id="department-suggestions">
@@ -356,14 +356,14 @@ export function EmployeeForm({ currentUser, onRefreshMetrics, onSelectEmployee }
               </div>
 
               <div>
-                <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Job Title / Specialty Focus</label>
+                <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Specialty Focus</label>
                 <input
                   type="text"
                   list="designation-suggestions"
                   value={specialization}
                   onChange={(e) => setSpecialization(e.target.value)}
-                  className="w-full bg-[#1c1c1e] border border-gray-800 rounded-lg text-xs p-2.5 text-gray-200"
-                  placeholder="e.g. CAD Designer, Driver, Goldsmith"
+                  className="w-full bg-[#060c1c] border border-gray-800 rounded-lg text-xs p-2.5 text-gray-200"
+                  placeholder="e.g. Goldsmith, Gem Setter"
                 />
                 <datalist id="designation-suggestions">
                   <option value="CAD Designer" />
@@ -404,7 +404,7 @@ export function EmployeeForm({ currentUser, onRefreshMetrics, onSelectEmployee }
                 <div className="flex-1 space-y-1.5 text-left">
                   <input
                     type="text"
-                    placeholder="Paste Web Portrait URL"
+                    placeholder="Paste Web Portrait Absolute URL"
                     value={profileImage}
                     onChange={(e) => setProfileImage(e.target.value)}
                     className="w-full bg-[#0a0a0c] border border-gray-850 rounded-lg text-[10px] p-2 text-gray-300 focus:outline-none focus:border-[#d4af37]"
@@ -439,9 +439,11 @@ export function EmployeeForm({ currentUser, onRefreshMetrics, onSelectEmployee }
 
             <button
               type="submit"
-              className="w-full py-3 bg-gradient-to-r from-[#d4af37] to-[#aa7c11] text-black font-semibold text-xs rounded-xl hover:brightness-110 flex items-center justify-center gap-2"
+              className="w-full py-3.5 btn-gold-3d text-sm rounded-xl"
             >
-              <UserPlus className="w-4 h-4" /> Enroll Specialist
+              <span className="flex items-center justify-center gap-2">
+                <UserCheck className="w-4 h-4" /> Save & Register Artisan ➔
+              </span>
             </button>
           </form>
         </div>

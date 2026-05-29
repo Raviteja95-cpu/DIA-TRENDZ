@@ -130,4 +130,5 @@ export interface Holiday {
   createdBy: string;
   creatorRole: UserRole;
   status: 'APPROVED' | 'PENDING_DECISION';
+  isHalfDay?: boolean;
 }

@@ -49,6 +49,7 @@ export function LeaveCalendar({ currentUser, onRefreshMetrics }: LeaveCalendarPr
   const [holidayEnd, setHolidayEnd] = useState('');
   const [holidayDesc, setHolidayDesc] = useState('');
   const [holidayDays, setHolidayDays] = useState(1);
+  const [isHalfDay, setIsHalfDay] = useState(false);
   const [submittingHoliday, setSubmittingHoliday] = useState(false);
   const [holidaySuccess, setHolidaySuccess] = useState('');
   const [holidayError, setHolidayError] = useState('');
@@ -222,7 +223,8 @@ export function LeaveCalendar({ currentUser, onRefreshMetrics }: LeaveCalendarPr
 
   const handleCreateHoliday = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!holidayName || !holidayStart || !holidayEnd) {
+    const effectiveEndDate = isHalfDay ? holidayStart : holidayEnd;
+    if (!holidayName || !holidayStart || !effectiveEndDate) {
       setHolidayError('Please complete all holiday name, start and end boundaries.');
       return;
     }
@@ -238,9 +240,10 @@ export function LeaveCalendar({ currentUser, onRefreshMetrics }: LeaveCalendarPr
         body: JSON.stringify({
           name: holidayName,
           startDate: holidayStart,
-          endDate: holidayEnd,
+          endDate: effectiveEndDate,
           description: holidayDesc,
-          days: holidayDays,
+          days: isHalfDay ? 0.5 : holidayDays,
+          isHalfDay,
           createdBy: currentUser.fullName,
           creatorRole: currentUser.role
         })
@@ -261,6 +264,7 @@ export function LeaveCalendar({ currentUser, onRefreshMetrics }: LeaveCalendarPr
       setHolidayEnd('');
       setHolidayDesc('');
       setHolidayDays(1);
+      setIsHalfDay(false);
       fetchData();
     } catch (err: any) {
       setHolidayError(err.message || 'Error occurred.');
@@ -684,10 +688,44 @@ export function LeaveCalendar({ currentUser, onRefreshMetrics }: LeaveCalendarPr
                       type="text"
                       value={holidayName}
                       onChange={(e) => setHolidayName(e.target.value)}
-                      className="w-full bg-[#1c1c1e] border border-gray-800 rounded-lg text-xs p-2 text-gray-205 text-gray-200"
+                      className="w-full bg-[#1c1c1e] border border-gray-800 rounded-lg text-xs p-2.5 text-gray-200 focus:border-[#d4af37]/60 focus:outline-none"
                       placeholder="e.g. Founder's Day, Summer Solstice Closure"
                       required
                     />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-[10px] uppercase font-bold text-gray-400">Duration Type</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsHalfDay(false);
+                          if (holidayDays === 0.5) setHolidayDays(1);
+                        }}
+                        className={`py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition select-none cursor-pointer ${
+                          !isHalfDay
+                            ? 'bg-[#d4af37]/15 text-[#d4af37] border border-[#d4af37]/35'
+                            : 'bg-[#1c1c1e] text-gray-400 border border-gray-800 hover:border-gray-700'
+                        }`}
+                      >
+                        Full Day Holiday
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsHalfDay(true);
+                          setHolidayDays(0.5);
+                        }}
+                        className={`py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition select-none cursor-pointer ${
+                          isHalfDay
+                            ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/30'
+                            : 'bg-[#1c1c1e] text-gray-400 border border-gray-800 hover:border-gray-700'
+                        }`}
+                      >
+                        Half Day Holiday
+                      </button>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
@@ -696,18 +734,30 @@ export function LeaveCalendar({ currentUser, onRefreshMetrics }: LeaveCalendarPr
                       <input
                         type="date"
                         value={holidayStart}
-                        onChange={(e) => setHolidayStart(e.target.value)}
-                        className="w-full bg-[#1c1c1e] border border-gray-800 rounded-lg text-xs p-2 text-gray-300"
+                        onChange={(e) => {
+                          setHolidayStart(e.target.value);
+                          if (isHalfDay) {
+                            setHolidayEnd(e.target.value);
+                          }
+                        }}
+                        className="w-full bg-[#1c1c1e] border border-gray-800 rounded-lg text-xs p-2 text-gray-350 text-gray-200"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">End Date</label>
+                      <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">
+                        {isHalfDay ? 'End Date (Locked)' : 'End Date'}
+                      </label>
                       <input
                         type="date"
-                        value={holidayEnd}
-                        onChange={(e) => setHolidayEnd(e.target.value)}
-                        className="w-full bg-[#1c1c1e] border border-gray-800 rounded-lg text-xs p-2 text-gray-300"
+                        value={isHalfDay ? holidayStart : holidayEnd}
+                        onChange={(e) => {!isHalfDay && setHolidayEnd(e.target.value)}}
+                        disabled={isHalfDay}
+                        className={`w-full border rounded-lg text-xs p-2 text-gray-300 ${
+                          isHalfDay 
+                            ? 'bg-gray-900 border-gray-850 text-gray-500 cursor-not-allowed' 
+                            : 'bg-[#1c1c1e] border-gray-800'
+                        }`}
                         required
                       />
                     </div>
@@ -718,17 +768,29 @@ export function LeaveCalendar({ currentUser, onRefreshMetrics }: LeaveCalendarPr
                       <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Final Holiday Days Duration</label>
                       <input
                         type="number"
-                        min={1}
-                        value={holidayDays}
+                        min={0.5}
+                        step={0.5}
+                        disabled={isHalfDay}
+                        value={isHalfDay ? 0.5 : holidayDays}
                         onChange={(e) => setHolidayDays(Number(e.target.value))}
-                        className="w-full bg-[#1c1c1e] border border-gray-800 rounded-lg text-xs p-2 text-gray-200 font-mono"
+                        className={`w-full border rounded-lg text-xs p-2 font-mono text-gray-200 ${
+                          isHalfDay 
+                            ? 'bg-gray-900 border-gray-850 text-gray-500 cursor-not-allowed' 
+                            : 'bg-[#1c1c1e] border-gray-800'
+                        }`}
                         required
                       />
-                      <span className="text-[9px] text-gray-500 mt-1 block font-sans">Super Admins define the finalized duration counts of the dayoffs directly.</span>
+                      <span className="text-[9px] text-gray-500 mt-1 block font-sans">
+                        {isHalfDay 
+                          ? 'Duration is locked at 0.5 days for Half Day Holiday.' 
+                          : 'Super Admins define the finalized duration counts of the dayoffs directly.'}
+                      </span>
                     </div>
                   ) : (
-                    <div className="p-3 bg-[#1c1c1e] border border-gray-800 rounded-xl text-[10px] text-gray-450 text-slate-400 leading-normal">
-                      ⚠ Created holidays will initialize under automatically calculated intervals and stage as PENDING decision until vetted by a Super Admin.
+                    <div className="p-3 bg-[#1c1c1e] border border-gray-800 rounded-xl text-[10px] text-slate-400 leading-normal">
+                      {isHalfDay 
+                        ? '⚠ Created half-day holiday will stage as PENDING decision until vetted by a Super Admin with 0.5 days credit.'
+                        : '⚠ Created holidays will initialize under automatically calculated intervals and stage as PENDING decision until vetted by a Super Admin.'}
                     </div>
                   )}
 
@@ -773,7 +835,14 @@ export function LeaveCalendar({ currentUser, onRefreshMetrics }: LeaveCalendarPr
                       <div key={h.id} className="p-3 bg-gray-950/60 border border-gray-900 rounded-xl space-y-2 text-xs">
                         <div className="flex justify-between items-start gap-4">
                           <div>
-                            <h5 className="font-bold text-white uppercase text-xs leading-tight">{h.name}</h5>
+                            <h5 className="font-bold text-white uppercase text-xs leading-tight flex items-center gap-1.5 flex-wrap">
+                              <span>{h.name}</span>
+                              {h.isHalfDay && (
+                                <span className="text-[8px] bg-indigo-950 text-indigo-450 text-indigo-400 border border-indigo-900/50 font-extrabold px-1.5 py-0.5 rounded uppercase font-mono">
+                                  Half Day
+                                </span>
+                              )}
+                            </h5>
                             <span className="text-[9.5px] text-gray-500 block mt-0.5">{h.startDate} to {h.endDate}</span>
                           </div>
                           {h.status === 'APPROVED' ? (

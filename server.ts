@@ -48,7 +48,7 @@ const DEFAULT_DB_STATE = {
     {
       id: 'EMP-002',
       email: 'lead@diatrendz.com',
-      passwordHash: 'Admin@123',
+      passwordHash: 'test@123',
       fullName: 'Sanjay Jha (Team Lead)',
       role: 'ADMIN',
       phone: '+91 98765 43210',
@@ -62,7 +62,7 @@ const DEFAULT_DB_STATE = {
     {
       id: 'EMP-101',
       email: 'rajesh@diatrendz.com',
-      passwordHash: 'Admin@123',
+      passwordHash: 'test@123',
       fullName: 'Rajesh Kumar',
       role: 'EMPLOYEE',
       phone: '+91 91234 56789',
@@ -79,7 +79,7 @@ const DEFAULT_DB_STATE = {
     {
       id: 'EMP-102',
       email: 'deepa@diatrendz.com',
-      passwordHash: 'Admin@123',
+      passwordHash: 'test@123',
       fullName: 'Deepa Patel',
       role: 'EMPLOYEE',
       phone: '+91 99887 76655',
@@ -96,7 +96,7 @@ const DEFAULT_DB_STATE = {
     {
       id: 'EMP-103',
       email: 'vikram@diatrendz.com',
-      passwordHash: 'Admin@123',
+      passwordHash: 'test@123',
       fullName: 'Vikram Rathore',
       role: 'EMPLOYEE',
       phone: '+91 98877 66554',
@@ -113,7 +113,7 @@ const DEFAULT_DB_STATE = {
     {
       id: 'EMP-104',
       email: 'amit@diatrendz.com',
-      passwordHash: 'Admin@123',
+      passwordHash: 'test@123',
       fullName: 'Amit Sharma',
       role: 'EMPLOYEE',
       phone: '+91 91234 88811',
@@ -130,7 +130,7 @@ const DEFAULT_DB_STATE = {
     {
       id: 'EMP-105',
       email: 'priya@diatrendz.com',
-      passwordHash: 'Admin@123',
+      passwordHash: 'test@123',
       fullName: 'Priya Nair',
       role: 'EMPLOYEE',
       phone: '+91 91234 88822',
@@ -147,7 +147,7 @@ const DEFAULT_DB_STATE = {
     {
       id: 'EMP-106',
       email: 'rohan@diatrendz.com',
-      passwordHash: 'Admin@123',
+      passwordHash: 'test@123',
       fullName: 'Rohan Das',
       role: 'EMPLOYEE',
       phone: '+91 91234 88833',
@@ -164,7 +164,7 @@ const DEFAULT_DB_STATE = {
     {
       id: 'EMP-107',
       email: 'sneha@diatrendz.com',
-      passwordHash: 'Admin@123',
+      passwordHash: 'test@123',
       fullName: 'Sneha Reddy',
       role: 'EMPLOYEE',
       phone: '+91 91234 88844',
@@ -181,7 +181,7 @@ const DEFAULT_DB_STATE = {
     {
       id: 'EMP-108',
       email: 'kabir@diatrendz.com',
-      passwordHash: 'Admin@123',
+      passwordHash: 'test@123',
       fullName: 'Kabir Mehta',
       role: 'EMPLOYEE',
       phone: '+91 91234 88855',
@@ -198,7 +198,7 @@ const DEFAULT_DB_STATE = {
     {
       id: 'EMP-201',
       email: 'qc@diatrendz.com',
-      passwordHash: 'Admin@123',
+      passwordHash: 'test@123',
       fullName: 'David Miller (QC Lead)',
       role: 'QC',
       phone: '+1 (555) 123-4567',
@@ -218,88 +218,29 @@ const DEFAULT_DB_STATE = {
   ],
   tasks: [
     {
-      id: 'JOB-1001',
-      taskId: 'TSK-1001',
-      customerName: 'Tiffany & Co.',
+      id: 'JOB-101',
+      taskId: 'TSK-101',
+      customerName: 'Imperial Diamond Crown Ring',
       jewelryType: 'Ring',
-      complexityLevel: 'Complex',
+      complexityLevel: 'Medium',
       priority: 'High',
-      goldWeight: 8.5,
+      goldWeight: 14.2,
       materialType: '18K Yellow Gold',
       assignedEmployeeId: 'EMP-101',
       assignedEmployeeName: 'Rajesh Kumar',
-      dueDate: '2026-06-01',
+      dueDate: '2026-06-15',
       estimatedTime: 12,
-      approvedTime: 10,
-      actualTime: 4.5,
-      progressPercent: 45,
-      remarks: 'Faceted claw solitaire mount style config.',
+      approvedTime: 12,
+      actualTime: 3.5,
+      progressPercent: 44,
+      remarks: 'Unified master job card tracing 8 design steps: Designing -> CAD -> Melting -> Gem Sorting -> Bench Hand Setting -> Polishing -> Spectrometry QC -> Safe Vault.',
       status: 'In Progress',
       workImages: [],
       interruptionLogs: [],
       timeline: [
-        { status: 'Created', timestamp: '2026-05-20T10:00:00Z', user: 'Team Lead' },
-        { status: 'Assigned', timestamp: '2026-05-20T10:15:00Z', user: 'Team Lead' },
-        { status: 'Accepted', timestamp: '2026-05-20T11:00:00Z', user: 'Rajesh Kumar' },
-        { status: 'Estimation Submitted', timestamp: '2026-05-20T11:10:00Z', payload: 'Est: 12 hrs', user: 'Rajesh Kumar' },
-        { status: 'Approved', timestamp: '2026-05-20T13:00:00Z', payload: 'App: 10 hrs', user: 'Team Lead' },
-        { status: 'In Progress', timestamp: '2026-05-21T08:00:00Z', user: 'Rajesh Kumar' }
-      ]
-    },
-    {
-      id: 'JOB-1002',
-      taskId: 'TSK-1002',
-      customerName: 'Cartier Dubai',
-      jewelryType: 'Necklace',
-      complexityLevel: 'Premium',
-      priority: 'Urgent',
-      goldWeight: 42.0,
-      materialType: 'Platinum 950',
-      assignedEmployeeId: 'EMP-102',
-      assignedEmployeeName: 'Deepa Patel',
-      dueDate: '2026-05-28',
-      estimatedTime: 24,
-      approvedTime: 24,
-      actualTime: 22.0,
-      progressPercent: 95,
-      remarks: 'Hand crafting with micro-pave setting pattern integration.',
-      status: 'QC Pending',
-      workImages: [],
-      interruptionLogs: [],
-      timeline: [
-        { status: 'Created', timestamp: '2026-05-18T09:00:00Z', user: 'Team Lead' },
-        { status: 'Assigned', timestamp: '2026-05-18T09:10:00Z', user: 'Team Lead' },
-        { status: 'Accepted', timestamp: '2026-05-18T09:30:00Z', user: 'Deepa Patel' },
-        { status: 'Approved', timestamp: '2026-05-18T10:00:00Z', payload: 'App: 24 hrs', user: 'Team Lead' },
-        { status: 'In Progress', timestamp: '2026-05-18T10:15:00Z', user: 'Deepa Patel' },
-        { status: 'QC Pending', timestamp: '2026-05-22T17:00:00Z', user: 'Deepa Patel' }
-      ]
-    },
-    {
-      id: 'JOB-1003',
-      taskId: 'TSK-1003',
-      customerName: 'Bulgari Rome',
-      jewelryType: 'Bracelet',
-      complexityLevel: 'Medium',
-      priority: 'Medium',
-      goldWeight: 14.5,
-      materialType: '18K Rose Gold',
-      assignedEmployeeId: 'EMP-103',
-      assignedEmployeeName: 'Vikram Rathore',
-      dueDate: '2026-06-05',
-      estimatedTime: 8,
-      approvedTime: 0,
-      actualTime: 0,
-      progressPercent: 0,
-      remarks: 'Serpenti coiled modular style alignment check.',
-      status: 'Waiting Approval',
-      workImages: [],
-      interruptionLogs: [],
-      timeline: [
-        { status: 'Created', timestamp: '2026-05-22T08:00:00Z', user: 'Team Lead' },
-        { status: 'Assigned', timestamp: '2026-05-22T08:15:00Z', user: 'Team Lead' },
-        { status: 'Accepted', timestamp: '2026-05-22T09:00:00Z', user: 'Vikram Rathore' },
-        { status: 'Estimation Submitted', timestamp: '2026-05-22T09:05:00Z', payload: 'Est: 8 hrs', user: 'Vikram Rathore' }
+        { status: 'Created', timestamp: '2026-05-29T10:00:00Z', user: 'Dia Trendz SuperAdmin' },
+        { status: 'Assigned', timestamp: '2026-05-29T10:15:00Z', user: 'Sanjay Jha (Team Lead)' },
+        { status: 'Accepted', timestamp: '2026-05-29T11:00:00Z', user: 'Rajesh Kumar' }
       ]
     }
   ],
@@ -1046,7 +987,7 @@ app.get('/api/holidays', (req, res) => {
 });
 
 app.post('/api/holidays', (req, res) => {
-  const { name, startDate, endDate, description, days, createdBy, creatorRole } = req.body;
+  const { name, startDate, endDate, description, days, createdBy, creatorRole, isHalfDay } = req.body;
   const db = loadData();
 
   if (!db.holidays) {
@@ -1061,7 +1002,8 @@ app.post('/api/holidays', (req, res) => {
     startDate,
     endDate,
     description,
-    days: creatorRole === 'SUPER_ADMIN' ? (Number(days) || calculatedDays) : calculatedDays,
+    days: (typeof days !== 'undefined' && days !== null) ? Number(days) : calculatedDays,
+    isHalfDay: !!isHalfDay,
     createdBy,
     creatorRole,
     status: creatorRole === 'SUPER_ADMIN' ? 'APPROVED' : 'PENDING_DECISION'
