@@ -1,5 +1,5 @@
 {
-  "name": "DIA TRENDZ",
+  "name": "dia-trendz",
   "description": "Enterprise Jewelry Production Management System for tracking tasks, estimations, quality control, shift switches, and productivity analytics.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
